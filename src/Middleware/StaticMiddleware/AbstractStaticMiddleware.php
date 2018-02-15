@@ -1,0 +1,172 @@
+<?php
+
+/*
+ * Copyright (c) Romain Cottard
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Eureka\Framework\Kernel\Middleware\StaticMiddleware;
+
+use Eureka\Component\Config\Config;
+use Eureka\Component\Psr\Http\Middleware\DelegateInterface;
+use Eureka\Component\Psr\Http\Middleware\ServerMiddlewareInterface;
+use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+
+/**
+ * Abstract Class Static Middleware
+ *
+ * Need to have those apache's rules:
+ *
+ * # we check for css
+ * RewriteCond %{REQUEST_FILENAME} !-f
+ * RewriteRule ^static/(.*)\.(css)$ static.php?type=css&file=$1&ext=$2 [L]
+ *
+ * # we check for js
+ * RewriteCond %{REQUEST_FILENAME} !-f
+ * RewriteRule ^static/(.*)\.(js)$ static.php?type=js&file=$1&ext=$2 [L]
+ * # we check for images files
+ * RewriteCond %{REQUEST_FILENAME} !-f
+ * RewriteRule ^static/(.*)\.(jpg|jpeg|png)$ static.php?type=image&file=$1&ext=$2 [L]
+ * # we check for fonts files
+ * RewriteCond %{REQUEST_FILENAME} !-f
+ * RewriteRule ^static/(.*)\.(eot|svg|ttf|woff|woff2)$ static.php?type=font&file=$1&ext=$2 [L]
+ *
+ * @author  Romain Cottard
+ */
+abstract class AbstractStaticMiddleware implements ServerMiddlewareInterface
+{
+    /** @var \Psr\Container\ContainerInterface $container */
+    protected $container = null;
+
+    /** @var \Eureka\Component\Config\Config $config Config */
+    protected $config = null;
+
+    /**
+     * CssMiddleware constructor.
+     *
+     * @param \Psr\Container\ContainerInterface
+     * @param \Eureka\Component\Config\Config $config ;
+     */
+    public function __construct(ContainerInterface $container, Config $config)
+    {
+        $this->container = $container;
+        $this->config    = $config;
+    }
+
+    /**
+     * @param  \Psr\Http\Message\ServerRequestInterface $request
+     * @param  \Eureka\Component\Psr\Http\Middleware\DelegateInterface $frame
+     * @return \Psr\Http\Message\ResponseInterface
+     * @throws \Exception
+     */
+    public function process(ServerRequestInterface $request, DelegateInterface $frame)
+    {
+        $response = $frame->next($request);
+
+        return $this->readFile($request, $response);
+    }
+
+    /**
+     * Get Mime Type
+     *
+     * @param  string $file
+     * @return string
+     */
+    protected function getMimeType($file)
+    {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+
+        return finfo_file($finfo, $file);
+    }
+
+    /**
+     * Read & add content file to the response.
+     *
+     * @param  \Psr\Http\Message\ServerRequestInterface $request
+     * @param  \Psr\Http\Message\ResponseInterface $response
+     * @return \Psr\Http\Message\ResponseInterface
+     * @throws \Exception
+     */
+    protected function readFile(ServerRequestInterface $request, ResponseInterface $response)
+    {
+        $path = trim($request->getQueryParams()['file']);
+        $ext  = trim($request->getQueryParams()['ext']);
+
+        //~ Uri form: cache/{package}/{theme}/{module}/{type}/{filename}
+        $pattern = '`(cache)/([a-z0-9_-]+)/([a-z0-9_-]+)/([a-z0-9_-]+)/([a-z0-9_-]+)/([a-z]+)/([a-z0-9_./-]+)`i';
+        $matches = [];
+
+        if (!(bool) preg_match($pattern, $path, $matches)) {
+            throw new \Exception('Invalid image uri');
+        }
+
+        $cache    = $matches[1];
+        $name     = $matches[2];
+        $package  = $matches[3];
+        $theme    = $matches[4];
+        $module   = $matches[5];
+        $type     = $matches[6];
+        $filename = $matches[7];
+
+        $basePath   = $this->config->get('kernel.root') . '/vendor/eureka';
+        $staticPath = $this->config->get('app.theme.path');
+
+        $replace = [
+            '{BASE}'     => $basePath,
+            '{NAME}'     => $name,
+            '{THEME}'    => $theme,
+            '{PACKAGE}'  => $package,
+            '{MODULE}'   => $module,
+            '{TYPE}'     => $type,
+            '{FILENAME}' => $filename,
+            '{EXT}'      => $ext,
+        ];
+
+        echo $staticPath . PHP_EOL;
+        if (empty($staticPath)) {
+            $staticPath = '{BASE}/{NAME}-{PACKAGE}-{THEME}/resources/static/{MODULE}/{TYPE}/{FILENAME}.{EXT}';
+        }
+
+        $file = str_replace(array_keys($replace), $replace, $staticPath);
+
+        if (!file_exists($file)) {
+            throw new \Exception('File does not exists ! (file: ' . $file . ')');
+        }
+
+        $content = file_get_contents($file);
+
+        //~ Write file in cache when is on prod
+        if (true === $this->config->get('app.theme.static.cache_enabled')) {
+            $this->writeCache(dirname($path), basename($filename . '.' . $ext), $content);
+        }
+
+        $response = $response->withHeader('Content-Type', $this->getMimeType($file));
+        $response->getBody()->write($content);
+
+        return $response;
+    }
+
+    /**
+     * Write cache
+     *
+     * @param  string $path
+     * @param  string $filename Cache file
+     * @param  string $content File content
+     * @return void
+     * @throws \Exception
+     */
+    private function writeCache($path, $filename, $content)
+    {
+        $path = $this->config->get('app.theme.static.cache_path') . DIRECTORY_SEPARATOR . $path;
+
+        if (!is_dir($path) && !mkdir($path, 0777, true)) {
+            throw new \Exception('Unable to create directory');
+        }
+
+        file_put_contents($path . DIRECTORY_SEPARATOR . $filename, $content);
+    }
+}

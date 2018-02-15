@@ -1,0 +1,28 @@
+{
+  "name": "eureka/kernel-framework",
+  "description": "Kernel for Eureka Framework. Define Global Application, Controller &amp; Component kernel versions",
+  "type": "library",
+  "license": "MIT",
+
+  "authors": [
+    {
+      "name": "Romain Cottard",
+      "role": "Developer"
+    }
+
+  ],
+
+  "autoload": {
+    "psr-4": {
+      "Eureka\\Framework\\Kernel\\": "./src"
+    }
+  },
+
+  "require": {
+    "eureka/component-config": "^1.2",
+    "eureka/component-container": "2.0",
+    "eureka/component-http": "^1.2",
+    "eureka/component-routing": "^1.2"
+  }
+
+}
