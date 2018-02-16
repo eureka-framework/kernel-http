@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Framework\Controller;
+namespace Eureka\Kernel\Http\Controller;
 
 /**
  * Data Collection class.

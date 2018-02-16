@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Framework\Middleware;
+namespace Eureka\Kernel\Http\Middleware;
 
 use Eureka\Component\Config\Config;
 use Eureka\Psr\Http\Server\MiddlewareInterface;
@@ -52,7 +52,7 @@ class RouterMiddleware implements MiddlewareInterface
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Eureka\Psr\Http\Server\RequestHandlerInterface
      * @return \Psr\Http\Message\ResponseInterface
-     * @throws \Eureka\Kernel\Framework\Middleware\Exception\RouteNotFoundException
+     * @throws \Eureka\Kernel\Http\Middleware\Exception\RouteNotFoundException
      * @throws \Eureka\Component\Routing\Exception\RoutingException
      * @throws \Eureka\Component\Routing\Exception\ParameterException
      */

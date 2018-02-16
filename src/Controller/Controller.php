@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Framework\Controller;
+namespace Eureka\Kernel\Http\Controller;
 
 use Eureka\Component\Config\Config;
 use Eureka\Component\Http\Message\ServerRequest;
@@ -25,7 +25,7 @@ abstract class Controller implements ControllerInterface
     /** @var \Eureka\Component\Routing\RouteInterface $route Route object. */
     protected $route = null;
 
-    /** @var \Eureka\Kernel\Framework\Controller\DataCollection $context Data collection object. */
+    /** @var \Eureka\Kernel\Http\Controller\DataCollection $context Data collection object. */
     protected $context = null;
 
     /** @var \Psr\Http\Message\ServerRequestInterface $request */

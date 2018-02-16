@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Framework\Application;
+namespace Eureka\Kernel\Http\Application;
 
 /**
  * Application interface

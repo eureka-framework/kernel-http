@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Framework\Error;
+namespace Eureka\Kernel\Http\Error;
 
 /**
  * Class to handle exception

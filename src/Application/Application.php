@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Framework\Application;
+namespace Eureka\Kernel\Http\Application;
 
 use Eureka\Component\Config\Config;
 use Eureka\Component\Http\Message as HttpMessage;

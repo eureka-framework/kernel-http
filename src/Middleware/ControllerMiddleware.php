@@ -7,10 +7,10 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Framework\Middleware;
+namespace Eureka\Kernel\Http\Middleware;
 
 use Eureka\Component\Config\Config;
-use Eureka\Kernel\Framework\Controller\ControllerInterface;
+use Eureka\Kernel\Http\Controller\ControllerInterface;
 use Eureka\Psr\Http\Server\MiddlewareInterface;
 use Eureka\Psr\Http\Server\RequestHandlerInterface;
 use Psr\Container\ContainerInterface;

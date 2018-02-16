@@ -1,6 +1,6 @@
 {
-  "name": "eureka/kernel-framework",
-  "description": "Kernel for Eureka Framework. Define Global Application, Controller &amp; Component kernel versions",
+  "name": "eureka/kernel-http",
+  "description": "Kernel Http for Eureka Framework. Define Global Application, Controller &amp; Component kernel versions",
   "type": "library",
   "license": "MIT",
 
@@ -14,17 +14,16 @@
 
   "autoload": {
     "psr-4": {
-      "Eureka\\Framework\\Kernel\\": "./src"
+      "Eureka\\Kernel\\Http\\": "./src"
     }
   },
 
   "require": {
-    "eureka/component-config": "^1.2",
+    "eureka/component-config": "^2.0",
     "eureka/component-container": "2.0",
-    "eureka/component-http": "^1.2",
-    "eureka/component-routing": "^1.2"
+    "eureka/component-http": "^2.0",
+    "eureka/component-routing": "^2.0",
     "eureka/psr-http-server-handler": "^1.0",
     "eureka/psr-http-server-middleware": "^1.0"
   }
-
 }

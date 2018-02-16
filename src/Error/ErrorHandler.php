@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Framework\Error;
+namespace Eureka\Kernel\Http\Error;
 
 /**
  * Class to handle error and transfer it into exceptions.
@@ -36,7 +36,7 @@ class ErrorHandler
      * @param  string $namespace Class Namespace.
      * @return callback  Previous exception handler.
      */
-    public function register($class = 'ErrorHandler', $method = 'handler', $namespace = 'Eureka\Kernel\Framework\Error')
+    public function register($class = 'ErrorHandler', $method = 'handler', $namespace = 'Eureka\Kernel\Http\Error')
     {
         set_error_handler([$namespace . '\\' . $class, $handler]);
     }

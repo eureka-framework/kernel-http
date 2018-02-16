@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Framework\Middleware\Exception;
+namespace Eureka\Kernel\Http\Middleware\Exception;
 
 /**
  * Class RouteNotFoundException

@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Framework\Middleware\StaticMiddleware;
+namespace Eureka\Kernel\Http\Middleware\StaticMiddleware;
 
 /**
  * Class ImageMiddleware

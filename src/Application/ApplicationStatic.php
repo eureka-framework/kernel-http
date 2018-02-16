@@ -7,13 +7,13 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Framework\Application;
+namespace Eureka\Kernel\Http\Application;
 
 use Eureka\Component\Config\Config;
 use Eureka\Component\Http\Message as HttpMessage;
 use Eureka\Component\Http\Middleware as HttpMiddleware;
 use Eureka\Component\Psr\Http\Middleware as PsrMiddleware;
-use Eureka\Kernel\Framework\Middleware;
+use Eureka\Kernel\Http\Middleware;
 use Psr\Container;
 
 /**

@@ -7,14 +7,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Framework\Middleware;
+namespace Eureka\Kernel\Http\Middleware;
 
 use Eureka\Component\Config\Config;
 use Eureka\Component\Http\Message\Response;
 use Eureka\Psr\Http\Server\MiddlewareInterface;
 use Eureka\Psr\Http\Server\RequestHandlerInterface;
-use Eureka\Kernel\Framework\Controller\ControllerInterface;
-use Eureka\Kernel\Framework\Middleware\Exception\RouteNotFoundException;
+use Eureka\Kernel\Http\Controller\ControllerInterface;
+use Eureka\Kernel\Http\Middleware\Exception\RouteNotFoundException;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
