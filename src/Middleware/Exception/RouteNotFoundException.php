@@ -7,8 +7,13 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Framework\Kernel\Middleware\Exception;
+namespace Eureka\Kernel\Framework\Middleware\Exception;
 
+/**
+ * Class RouteNotFoundException
+ *
+ * @author Romain Cottard
+ */
 class RouteNotFoundException extends \Exception
 {
 }

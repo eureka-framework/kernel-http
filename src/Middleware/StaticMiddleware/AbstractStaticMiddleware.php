@@ -7,11 +7,11 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Framework\Kernel\Middleware\StaticMiddleware;
+namespace Eureka\Kernel\Framework\Middleware\StaticMiddleware;
 
 use Eureka\Component\Config\Config;
-use Eureka\Component\Psr\Http\Middleware\DelegateInterface;
-use Eureka\Component\Psr\Http\Middleware\ServerMiddlewareInterface;
+use Eureka\Psr\Http\Server\MiddlewareInterface;
+use Eureka\Psr\Http\Server\RequestHandlerInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -37,7 +37,7 @@ use Psr\Http\Message\ServerRequestInterface;
  *
  * @author  Romain Cottard
  */
-abstract class AbstractStaticMiddleware implements ServerMiddlewareInterface
+abstract class AbstractStaticMiddleware implements MiddlewareInterface
 {
     /** @var \Psr\Container\ContainerInterface $container */
     protected $container = null;
@@ -58,14 +58,11 @@ abstract class AbstractStaticMiddleware implements ServerMiddlewareInterface
     }
 
     /**
-     * @param  \Psr\Http\Message\ServerRequestInterface $request
-     * @param  \Eureka\Component\Psr\Http\Middleware\DelegateInterface $frame
-     * @return \Psr\Http\Message\ResponseInterface
-     * @throws \Exception
+     * {@inheritdoc}
      */
-    public function process(ServerRequestInterface $request, DelegateInterface $frame)
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler)
     {
-        $response = $frame->next($request);
+        $response = $handler->handle($request);
 
         return $this->readFile($request, $response);
     }

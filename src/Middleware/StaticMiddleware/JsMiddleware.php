@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Framework\Kernel\Middleware\StaticMiddleware;
+namespace Eureka\Kernel\Framework\Middleware\StaticMiddleware;
 
 /**
  * Class JsMiddleware

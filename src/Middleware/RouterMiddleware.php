@@ -7,19 +7,16 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Framework\Kernel\Middleware;
+namespace Eureka\Kernel\Framework\Middleware;
 
 use Eureka\Component\Config\Config;
-use Eureka\Component\Container\Container;
-use Eureka\Component\Http\Message\Response;
-use Eureka\Component\Psr\Http\Middleware\DelegateInterface;
-use Eureka\Component\Psr\Http\Middleware\ServerMiddlewareInterface;
-use Eureka\Middleware\Routing\Exception\RouteNotFoundException;
+use Eureka\Psr\Http\Server\MiddlewareInterface;
+use Eureka\Psr\Http\Server\RequestHandlerInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Eureka\Component\Routing\Route;
 
-class RouterMiddleware implements ServerMiddlewareInterface
+class RouterMiddleware implements MiddlewareInterface
 {
     /** @var \Psr\Container\ContainerInterface $container */
     protected $container = null;
@@ -27,7 +24,7 @@ class RouterMiddleware implements ServerMiddlewareInterface
     /** @var Config config */
     protected $config = null;
 
-    /** @var Routing\RouteCollection $collection */
+    /** @var \Eureka\Component\Routing\RouteCollection $collection */
     private $collection = null;
 
     /**
@@ -35,6 +32,9 @@ class RouterMiddleware implements ServerMiddlewareInterface
      *
      * @param ContainerInterface $container
      * @param Config $config
+     * @throws \Eureka\Component\Routing\Exception\RoutingException
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws \Psr\Container\ContainerExceptionInterface
      */
     public function __construct(ContainerInterface $container, Config $config)
     {
@@ -49,11 +49,14 @@ class RouterMiddleware implements ServerMiddlewareInterface
     }
 
     /**
-     * @param ServerRequestInterface  $request
-     * @param DelegateInterface $frame
+     * @param \Psr\Http\Message\ServerRequestInterface $request
+     * @param \Eureka\Psr\Http\Server\RequestHandlerInterface
      * @return \Psr\Http\Message\ResponseInterface
+     * @throws \Eureka\Kernel\Framework\Middleware\Exception\RouteNotFoundException
+     * @throws \Eureka\Component\Routing\Exception\RoutingException
+     * @throws \Eureka\Component\Routing\Exception\ParameterException
      */
-    public function process(ServerRequestInterface $request, DelegateInterface $frame)
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler)
     {
         $route = $this->collection->match((string) $request->getUri(), false);
 
@@ -63,6 +66,6 @@ class RouterMiddleware implements ServerMiddlewareInterface
 
         $request = $request->withAttribute('route', $route);
 
-        return $frame->next($request);
+        return $handler->handle($request);
     }
 }

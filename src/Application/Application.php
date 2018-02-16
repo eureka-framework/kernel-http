@@ -7,12 +7,11 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Framework\Kernel\Application;
+namespace Eureka\Kernel\Framework\Application;
 
 use Eureka\Component\Config\Config;
 use Eureka\Component\Http\Message as HttpMessage;
-use Eureka\Component\Http\Middleware as HttpMiddleware;
-use Eureka\Component\Psr\Http\Middleware;
+use Eureka\Component\Http\Server as HttpServer;
 use Psr\Container;
 
 /**
@@ -22,7 +21,7 @@ use Psr\Container;
  */
 class Application
 {
-    /** @var Middleware\MiddlewareInterface[] $middleware */
+    /** @var \Eureka\Psr\Http\Server\MiddlewareInterface[] $middleware */
     protected $middleware = [];
 
     /** @var \Psr\Container\ContainerInterface $container */
@@ -59,8 +58,8 @@ class Application
             $this->loadMiddleware();
 
             //~ Get response
-            $stack    = new HttpMiddleware\Stack($response, $this->middleware);
-            $response = $stack->process(HttpMessage\ServerRequest::createFromGlobal());
+            $handler  = new HttpServer\RequestHandler($response, $this->middleware);
+            $response = $handler->handle(HttpMessage\ServerRequest::createFromGlobal());
 
         } catch(Container\ContainerExceptionInterface $exception) {
 
@@ -88,10 +87,6 @@ class Application
         $list = $this->config->get('app.middleware');
 
         foreach ($list as $name => $conf) {
-            $services = $conf['services'];
-            foreach ($services as $service) {
-                // todo
-            }
             $this->middleware[] = new $conf['class']($this->container, $this->config);
         }
     }

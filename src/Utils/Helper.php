@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Framework\Kernel\Utils;
+namespace Eureka\Kernel\Framework\Utils;
 
 /**
  * Class Helper

@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Framework\Kernel;
+namespace Eureka\Kernel\Framework;
 
 use Eureka\Component\Config\Config;
 use Eureka\Component\Container\Container;

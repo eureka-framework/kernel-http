@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Framework\Kernel\Middleware\StaticMiddleware;
+namespace Eureka\Kernel\Framework\Middleware\StaticMiddleware;
 
 use Eureka\Component\Config\Config;
 use Eureka\Component\Media\Image\Image;

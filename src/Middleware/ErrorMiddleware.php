@@ -7,18 +7,18 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Framework\Kernel\Middleware;
+namespace Eureka\Kernel\Framework\Middleware;
 
 use Eureka\Component\Config\Config;
 use Eureka\Component\Http\Message\Response;
-use Eureka\Component\Psr\Http\Middleware\DelegateInterface;
-use Eureka\Component\Psr\Http\Middleware\ServerMiddlewareInterface;
-use Eureka\Framework\Kernel\Controller\ControllerInterface;
-use Eureka\Framework\Kernel\Middleware\Exception\RouteNotFoundException;
+use Eureka\Psr\Http\Server\MiddlewareInterface;
+use Eureka\Psr\Http\Server\RequestHandlerInterface;
+use Eureka\Kernel\Framework\Controller\ControllerInterface;
+use Eureka\Kernel\Framework\Middleware\Exception\RouteNotFoundException;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class ErrorMiddleware implements ServerMiddlewareInterface
+class ErrorMiddleware implements MiddlewareInterface
 {
     /** @var \Psr\Container\ContainerInterface $container */
     protected $container = null;
@@ -41,10 +41,10 @@ class ErrorMiddleware implements ServerMiddlewareInterface
     /**
      * {@inheritdoc}
      */
-    public function process(ServerRequestInterface $request, DelegateInterface $frame)
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler)
     {
         try {
-            $response = $frame->next($request);
+            $response = $handler->handle($request);
         } catch (\Exception $exception) {
             $response = $this->getErrorResponse($request, $exception);
         }
@@ -63,7 +63,7 @@ class ErrorMiddleware implements ServerMiddlewareInterface
      * @throws \Twig_Error_Loader
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
-     *
+     * @throws \Eureka\Component\Routing\Exception\RoutingException
      */
     private function getErrorResponse(ServerRequestInterface $request, \Exception $exception)
     {

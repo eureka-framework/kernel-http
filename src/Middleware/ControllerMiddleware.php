@@ -7,16 +7,21 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Framework\Kernel\Middleware;
+namespace Eureka\Kernel\Framework\Middleware;
 
 use Eureka\Component\Config\Config;
-use Eureka\Component\Controller\ControllerInterface;
-use Eureka\Component\Psr\Http\Middleware\DelegateInterface;
-use Eureka\Component\Psr\Http\Middleware\ServerMiddlewareInterface;
+use Eureka\Kernel\Framework\Controller\ControllerInterface;
+use Eureka\Psr\Http\Server\MiddlewareInterface;
+use Eureka\Psr\Http\Server\RequestHandlerInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message;
 
-class ControllerMiddleware implements ServerMiddlewareInterface
+/**
+ * Class ControllerMiddleware
+ *
+ * @author Romain Cottard
+ */
+class ControllerMiddleware implements MiddlewareInterface
 {
     /** @var \Psr\Container\ContainerInterface $container */
     protected $container = null;
@@ -39,7 +44,7 @@ class ControllerMiddleware implements ServerMiddlewareInterface
     /**
      * {@inheritdoc}
      */
-    public function process(Message\ServerRequestInterface $request, DelegateInterface $frame)
+    public function process(Message\ServerRequestInterface $request, RequestHandlerInterface $handler)
     {
         if (null === $request->getAttribute('route')) {
             throw new \RuntimeException('Route not defined');
@@ -47,7 +52,7 @@ class ControllerMiddleware implements ServerMiddlewareInterface
 
         $response = $this->run($request);
 
-        $otherResponse = $frame->next($request);
+        $otherResponse = $handler->handle($request);
         $response->getBody()->write($otherResponse->getBody()->getContents());
 
         return $response;
@@ -72,7 +77,7 @@ class ControllerMiddleware implements ServerMiddlewareInterface
 
         $controller = new $controller($this->container, $this->config, $route, $request);
 
-        if (!($controller instanceof \Eureka\Framework\Kernel\Controller\ControllerInterface)) {
+        if (!($controller instanceof ControllerInterface)) {
             throw new \LogicException('Controller does not implement Controller Interface! (controller: ' . get_class($controller) . ')');
         }
 

@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Framework\Kernel\Error;
+namespace Eureka\Kernel\Framework\Error;
 
 /**
  * Class to handle exception
@@ -24,7 +24,7 @@ class ExceptionHandler
      * @param  string $namespace Class Namespace.
      * @return callback Previous exception handler.
      */
-    public static function register($class = 'ExceptionHandler', $method = 'handler', $namespace = '\Eureka\Framework\Kernel\Error')
+    public static function register($class = 'ExceptionHandler', $method = 'handler', $namespace = '\Eureka\Kernel\Framework\Error')
     {
         $handler = $namespace . '\\' . $class . '::' . $method;
 

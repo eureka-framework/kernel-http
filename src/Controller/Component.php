@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Framework\Kernel\Controller;
+namespace Eureka\Kernel\Framework\Controller;
 
 use Eureka\Component\Config\Config;
 use Psr\Container\ContainerInterface;
