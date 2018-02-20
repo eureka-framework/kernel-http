@@ -11,8 +11,7 @@ namespace Eureka\Kernel\Http\Application;
 
 use Eureka\Component\Config\Config;
 use Eureka\Component\Http\Message as HttpMessage;
-use Eureka\Component\Http\Middleware as HttpMiddleware;
-use Eureka\Component\Psr\Http\Middleware as PsrMiddleware;
+use Eureka\Component\Http\Server as HttpServer;
 use Eureka\Kernel\Http\Middleware;
 use Psr\Container;
 
@@ -23,17 +22,18 @@ use Psr\Container;
  */
 class ApplicationStatic implements ApplicationInterface
 {
-    /** @var PsrMiddleware\MiddlewareInterface[] $middleware */
+    /** @var \Eureka\Psr\Http\Server\MiddlewareInterface[] $middleware */
     protected $middleware = [];
-
-    /** @var string $type Static content type. */
-    protected $type = '';
 
     /** @var \Psr\Container\ContainerInterface $container */
     protected $container = null;
 
     /** @var \Eureka\Component\Config\Config $container */
     protected $config = null;
+
+    /** @var string $type Static content type. */
+    protected $type = '';
+
 
     /**
      * ApplicationStatic constructor.
@@ -60,8 +60,8 @@ class ApplicationStatic implements ApplicationInterface
         $response = new HttpMessage\Response();
 
         //~ Get response
-        $stack    = new HttpMiddleware\Stack($response, $this->middleware);
-        $response = $stack->process(HttpMessage\ServerRequest::createFromGlobal());
+        $handler  = new HttpServer\RequestHandler($response, $this->middleware);
+        $response = $handler->handle(HttpMessage\ServerRequest::createFromGlobal());
 
         //~ Send response
         (new HttpMessage\ResponseSender($response))->send();

@@ -19,7 +19,7 @@ use Psr\Container;
  *
  * @author Romain Cottard
  */
-class Application
+class Application implements ApplicationInterface
 {
     /** @var \Eureka\Psr\Http\Server\MiddlewareInterface[] $middleware */
     protected $middleware = [];
