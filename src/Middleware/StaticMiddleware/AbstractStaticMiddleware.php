@@ -93,27 +93,32 @@ abstract class AbstractStaticMiddleware implements MiddlewareInterface
         $path = trim($request->getQueryParams()['file']);
         $ext  = trim($request->getQueryParams()['ext']);
 
-        //~ Uri form: cache/{package}/{theme}/{module}/{type}/{filename}
-        $pattern = '`(cache)/([a-z0-9_-]+)/([a-z0-9_-]+)/([a-z0-9_-]+)/([a-z0-9_-]+)/([a-z]+)/([a-z0-9_./-]+)`i';
+        //~ Uri form: cache/{vendor}/{name}-{package}-{theme}/{module}/{type}/{filename}
+        $pattern = '`(cache)/([a-z0-9_-]+)/([a-z0-9_]+)-([a-z0-9_]+)-([a-z0-9_]+)/([a-z0-9_]+)/([a-z]+)/([a-z0-9_./-]+)`i';
         $matches = [];
 
         if (!(bool) preg_match($pattern, $path, $matches)) {
+            var_export($path);
+            echo PHP_EOL;
+            var_export($pattern);
             throw new \Exception('Invalid image uri');
         }
 
         $cache    = $matches[1];
-        $name     = $matches[2];
-        $package  = $matches[3];
-        $theme    = $matches[4];
-        $module   = $matches[5];
-        $type     = $matches[6];
-        $filename = $matches[7];
+        $vendor   = $matches[2];
+        $name     = $matches[3];
+        $package  = $matches[4];
+        $theme    = $matches[5];
+        $module   = $matches[6];
+        $type     = $matches[7];
+        $filename = $matches[8];
 
-        $basePath   = $this->config->get('kernel.root') . '/vendor/eureka';
+        $basePath   = $this->config->get('kernel.root') . '/vendor';
         $staticPath = $this->config->get('app.theme.path');
 
         $replace = [
             '{BASE}'     => $basePath,
+            '{VENDOR}'   => $vendor,
             '{NAME}'     => $name,
             '{THEME}'    => $theme,
             '{PACKAGE}'  => $package,
@@ -125,7 +130,7 @@ abstract class AbstractStaticMiddleware implements MiddlewareInterface
 
         echo $staticPath . PHP_EOL;
         if (empty($staticPath)) {
-            $staticPath = '{BASE}/{NAME}-{PACKAGE}-{THEME}/resources/static/{MODULE}/{TYPE}/{FILENAME}.{EXT}';
+            $staticPath = '{BASE}/{VENDOR}/{NAME}-{PACKAGE}-{THEME}/resources/static/{MODULE}/{TYPE}/{FILENAME}.{EXT}';
         }
 
         $file = str_replace(array_keys($replace), $replace, $staticPath);

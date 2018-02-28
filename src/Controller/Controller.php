@@ -52,7 +52,7 @@ abstract class Controller implements ControllerInterface
         $this->route     = $route;
         $this->request   = $request;
 
-        $this->dataCollection = new DataCollection();
+        $this->context = new DataCollection();
     }
 
     /**
@@ -96,7 +96,7 @@ abstract class Controller implements ControllerInterface
     /**
      * Get current route.
      *
-     * @return \Eureka\Component\Routing\Route
+     * @return \Eureka\Component\Routing\RouteInterface
      */
     protected function getCurrentRoute()
     {
@@ -108,6 +108,8 @@ abstract class Controller implements ControllerInterface
      *
      * @param  string $name
      * @return \Eureka\Component\Routing\Route
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws \Psr\Container\ContainerExceptionInterface
      */
     protected function getRoute($name)
     {
@@ -135,7 +137,7 @@ abstract class Controller implements ControllerInterface
      */
     protected function addContext($key, $value)
     {
-        $this->dataCollection->add($key, $value);
+        $this->context->add($key, $value);
 
         return $this;
     }
@@ -143,11 +145,11 @@ abstract class Controller implements ControllerInterface
     /**
      * Get data collection.
      *
-     * @return DataCollection
+     * @return array
      */
     protected function getContext()
     {
-        return $this->dataCollection->toArray();
+        return $this->context->toArray();
     }
 
     /**
@@ -182,7 +184,7 @@ abstract class Controller implements ControllerInterface
      * @return void
      * @throws \Exception
      */
-    public function redirect($url, $status = 301)
+    protected function redirect($url, $status = 301)
     {
         $status = (int) $status;
 
@@ -200,13 +202,15 @@ abstract class Controller implements ControllerInterface
     /**
      * Redirect on specified route name.
      *
-     * @param  string $url
+     * @param  string $routeName
      * @param  array  $params
      * @param  int    $status
      * @return void
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Exception
      */
-    public function redirectToRoute($routeName, $params = [], $status = 200)
+    protected function redirectToRoute($routeName, $params = [], $status = 200)
     {
         $this->redirect($this->getRoute($routeName)->getUri($params), $status);
     }
