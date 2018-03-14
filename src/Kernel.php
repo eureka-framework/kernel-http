@@ -142,6 +142,7 @@ class Kernel
             ->loadYamlFromDirectory($path)
             ->add('kernel.root', $this->root)
             ->add('kernel.env', $this->environment)
+            ->add('kernel.environment', $this->environment)
             ->add('kernel.debug', $this->debug)
         ;
 
