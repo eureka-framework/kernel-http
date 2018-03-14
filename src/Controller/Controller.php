@@ -113,7 +113,7 @@ abstract class Controller implements ControllerInterface
      */
     protected function getRoute($name)
     {
-        return $this->getContainer()->get('routing')->get($name);
+        return $this->getContainer()->get('router')->get($name);
     }
 
     /**

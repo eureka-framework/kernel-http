@@ -24,15 +24,14 @@ class RouterMiddleware implements MiddlewareInterface
     /** @var Config config */
     protected $config = null;
 
-    /** @var \Eureka\Component\Routing\RouteCollection $collection */
-    private $collection = null;
+    /** @var \Eureka\Component\Routing\Router $collection */
+    private $router = null;
 
     /**
      * ExceptionMiddleware constructor.
      *
      * @param ContainerInterface $container
      * @param Config $config
-     * @throws \Eureka\Component\Routing\Exception\RoutingException
      * @throws \Psr\Container\NotFoundExceptionInterface
      * @throws \Psr\Container\ContainerExceptionInterface
      */
@@ -41,16 +40,12 @@ class RouterMiddleware implements MiddlewareInterface
         $this->container = $container;
         $this->config    = $config;
 
-        //~ Pre-load routing fro config
-        $this->collection = $this->container->get('routing');
-        $this->collection->addFromConfig($config->get('app.routing'));
-
-        $this->container->attach('routes', $this->collection);
+        $this->router = $container->get('router');
     }
 
     /**
-     * @param \Psr\Http\Message\ServerRequestInterface $request
-     * @param \Eureka\Psr\Http\Server\RequestHandlerInterface
+     * @param  \Psr\Http\Message\ServerRequestInterface $request
+     * @param  \Eureka\Psr\Http\Server\RequestHandlerInterface
      * @return \Psr\Http\Message\ResponseInterface
      * @throws \Eureka\Kernel\Http\Middleware\Exception\RouteNotFoundException
      * @throws \Eureka\Component\Routing\Exception\RoutingException
@@ -58,7 +53,7 @@ class RouterMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler)
     {
-        $route = $this->collection->match((string) $request->getUri(), false);
+        $route = $this->router->match((string) $request->getUri(), false);
 
         if (!($route instanceof Route)) {
             throw new Exception\RouteNotFoundException('Route not found', 10001);

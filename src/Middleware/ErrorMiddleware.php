@@ -96,14 +96,13 @@ class ErrorMiddleware implements MiddlewareInterface
 
         } else {
 
-            /** @var \Eureka\Component\Routing\RouteCollection $routing */
-            $routing = $this->container->get('routing');
-            $routing->addFromConfig($this->config->get('app.routing'));
+            /** @var \Eureka\Component\Routing\Router $router */
+            $router = $this->container->get('router');
 
             if ($exception instanceof RouteNotFoundException) {
-                $route = $routing->get('page404');
+                $route = $router->get('page404');
             } else {
-                $route = $routing->get('page500');
+                $route = $router->get('page500');
             }
 
             $controller = $route->getControllerName();
