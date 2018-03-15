@@ -28,7 +28,7 @@
     "eureka/psr-http-server-handler": "^1.0",
     "eureka/psr-http-server-middleware": "^1.0",
 
-    "eureka/component-config": "^2.2",
+    "eureka/component-config": "^3.0",
     "eureka/component-container": "^3.1",
     "eureka/component-http": "^2.0",
     "eureka/component-routing": "^3.0"
