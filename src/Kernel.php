@@ -182,7 +182,9 @@ class Kernel
                 continue;
             }
 
-            $this->config->loadYamlFromDirectory($data['config']);
+            $namespace = isset($data['namespace']) ? trim($data['namespace'], '.') . '.' : 'app.';
+
+            $this->config->loadYamlFromDirectory($data['config'], $namespace);
         }
 
         return $this;
