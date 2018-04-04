@@ -158,6 +158,7 @@ abstract class Controller implements ControllerInterface
      * @param  string $title
      * @param  string $description
      * @return $this
+     * @throws \Eureka\Component\Config\Exception\ConfigException
      */
     protected function setMetas($title = null, $description = null)
     {

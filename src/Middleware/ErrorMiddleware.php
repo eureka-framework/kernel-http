@@ -60,9 +60,6 @@ class ErrorMiddleware implements MiddlewareInterface
      * @return \Psr\Http\Message\ResponseInterface
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
      * @throws \Eureka\Component\Routing\Exception\RoutingException
      */
     private function getErrorResponse(ServerRequestInterface $request, \Exception $exception)
@@ -84,15 +81,6 @@ class ErrorMiddleware implements MiddlewareInterface
             $content->trace   = $exceptionDetail;
 
             $content = json_encode($content);
-
-        } elseif (null !== $request->getAttribute('twigLoader', null)) {
-
-            //~ Twig response error
-            $twigLoader      = $request->getAttribute('twigLoader');
-            $twig            = new \Twig_Environment($twigLoader);
-            $exceptionDetail = PHP_EOL . $exception->getMessage() . PHP_EOL . $exceptionDetail;
-
-            $content = $twig->render('@template/Content/Page' . $httpCode . '.twig', ['exceptionDetail' => $exceptionDetail]);
 
         } else {
 
