@@ -117,6 +117,16 @@ abstract class Controller implements ControllerInterface
     }
 
     /**
+     * @param  string $name
+     * @return string|int
+     * @throws \Eureka\Component\Routing\Exception\ParameterException
+     */
+    protected function getParameter($name)
+    {
+        return $this->getCurrentRoute()->getParameterCollection()->getByName($name)->getValue();
+    }
+
+    /**
      * @return ServerRequestInterface
      */
     protected function getRequest()
