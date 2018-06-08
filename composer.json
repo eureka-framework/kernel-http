@@ -30,7 +30,7 @@
 
     "eureka/component-config": "^3.0",
     "eureka/component-container": "^3.1",
-    "eureka/component-http": "^2.0",
+    "eureka/component-http": "^3.0",
     "eureka/component-routing": "^3.0"
   }
 }
