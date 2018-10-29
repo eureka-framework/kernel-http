@@ -10,8 +10,9 @@
 namespace Eureka\Kernel\Http\Middleware;
 
 use Eureka\Component\Config\Config;
-use Eureka\Psr\Http\Server\MiddlewareInterface;
-use Eureka\Psr\Http\Server\RequestHandlerInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Eureka\Component\Routing\Route;
@@ -45,13 +46,13 @@ class RouterMiddleware implements MiddlewareInterface
 
     /**
      * @param  \Psr\Http\Message\ServerRequestInterface $request
-     * @param  \Eureka\Psr\Http\Server\RequestHandlerInterface
+     * @param  \Psr\Http\Server\RequestHandlerInterface
      * @return \Psr\Http\Message\ResponseInterface
      * @throws \Eureka\Kernel\Http\Middleware\Exception\RouteNotFoundException
      * @throws \Eureka\Component\Routing\Exception\RoutingException
      * @throws \Eureka\Component\Routing\Exception\ParameterException
      */
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler)
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $route = $this->router->match((string) $request->getUri(), false);
 

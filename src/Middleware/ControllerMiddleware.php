@@ -11,8 +11,8 @@ namespace Eureka\Kernel\Http\Middleware;
 
 use Eureka\Component\Config\Config;
 use Eureka\Kernel\Http\Controller\ControllerInterface;
-use Eureka\Psr\Http\Server\MiddlewareInterface;
-use Eureka\Psr\Http\Server\RequestHandlerInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message;
 
@@ -44,7 +44,7 @@ class ControllerMiddleware implements MiddlewareInterface
     /**
      * {@inheritdoc}
      */
-    public function process(Message\ServerRequestInterface $request, RequestHandlerInterface $handler)
+    public function process(Message\ServerRequestInterface $request, RequestHandlerInterface $handler): Message\ResponseInterface
     {
         if (null === $request->getAttribute('route')) {
             throw new \RuntimeException('Route not defined');

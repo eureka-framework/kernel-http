@@ -21,7 +21,7 @@ use Psr\Container;
  */
 class Application implements ApplicationInterface
 {
-    /** @var \Eureka\Psr\Http\Server\MiddlewareInterface[] $middleware */
+    /** @var \Psr\Http\Server\MiddlewareInterface[] $middleware */
     protected $middleware = [];
 
     /** @var \Psr\Container\ContainerInterface $container */

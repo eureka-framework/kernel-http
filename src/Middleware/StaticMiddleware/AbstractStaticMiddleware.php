@@ -10,8 +10,8 @@
 namespace Eureka\Kernel\Http\Middleware\StaticMiddleware;
 
 use Eureka\Component\Config\Config;
-use Eureka\Psr\Http\Server\MiddlewareInterface;
-use Eureka\Psr\Http\Server\RequestHandlerInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -60,7 +60,7 @@ abstract class AbstractStaticMiddleware implements MiddlewareInterface
     /**
      * {@inheritdoc}
      */
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler)
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $response = $handler->handle($request);
 
@@ -98,13 +98,10 @@ abstract class AbstractStaticMiddleware implements MiddlewareInterface
         $matches = [];
 
         if (!(bool) preg_match($pattern, $path, $matches)) {
-            var_export($path);
-            echo PHP_EOL;
-            var_export($pattern);
             throw new \Exception('Invalid image uri');
         }
 
-        $cache    = $matches[1];
+
         $vendor   = $matches[2];
         $name     = $matches[3];
         $package  = $matches[4];
@@ -128,7 +125,6 @@ abstract class AbstractStaticMiddleware implements MiddlewareInterface
             '{EXT}'      => $ext,
         ];
 
-        echo $staticPath . PHP_EOL;
         if (empty($staticPath)) {
             $staticPath = '{BASE}/{VENDOR}/{NAME}-{PACKAGE}-{THEME}/resources/static/{MODULE}/{TYPE}/{FILENAME}.{EXT}';
         }

@@ -22,7 +22,7 @@ use Psr\Container;
  */
 class ApplicationStatic implements ApplicationInterface
 {
-    /** @var \Eureka\Psr\Http\Server\MiddlewareInterface[] $middleware */
+    /** @var \Psr\Http\Server\MiddlewareInterface[] $middleware */
     protected $middleware = [];
 
     /** @var \Psr\Container\ContainerInterface $container */
@@ -87,6 +87,7 @@ class ApplicationStatic implements ApplicationInterface
                 $this->middleware[] = new Middleware\StaticMiddleware\CssMiddleware($this->container, $this->config);
                 break;
             case 'js':
+            case 'map':
                 $this->middleware[] = new Middleware\StaticMiddleware\JsMiddleware($this->container, $this->config);
                 break;
             case 'image':

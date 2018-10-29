@@ -11,8 +11,9 @@ namespace Eureka\Kernel\Http\Middleware;
 
 use Eureka\Component\Config\Config;
 use Eureka\Component\Http\Message\Response;
-use Eureka\Psr\Http\Server\MiddlewareInterface;
-use Eureka\Psr\Http\Server\RequestHandlerInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use Eureka\Kernel\Http\Controller\ControllerInterface;
 use Eureka\Kernel\Http\Middleware\Exception\RouteNotFoundException;
 use Psr\Container\ContainerInterface;
@@ -41,7 +42,7 @@ class ErrorMiddleware implements MiddlewareInterface
     /**
      * {@inheritdoc}
      */
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler)
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         try {
             $response = $handler->handle($request);
