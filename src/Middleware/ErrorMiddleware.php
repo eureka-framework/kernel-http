@@ -9,38 +9,39 @@
 
 namespace Eureka\Kernel\Http\Middleware;
 
-use Eureka\Component\Config\Config;
-use Eureka\Component\Http\Message\Response;
+use Eureka\Component\Http\HttpFactory;
+use Eureka\Kernel\Http\Controller\ControllerInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Eureka\Kernel\Http\Controller\ControllerInterface;
-use Eureka\Kernel\Http\Middleware\Exception\RouteNotFoundException;
-use Psr\Container\ContainerInterface;
-use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
+use Symfony\Component\Routing\Router;
 
 class ErrorMiddleware implements MiddlewareInterface
 {
-    /** @var \Psr\Container\ContainerInterface $container */
-    protected $container = null;
-
-    /** @var Config config */
-    protected $config = null;
+    /** @var ContainerInterface $container */
+    protected $container;
 
     /**
-     * ExceptionMiddleware constructor.
+     * ControllerMiddleware constructor.
      *
      * @param ContainerInterface $container
-     * @param Config $config
      */
-    public function __construct(ContainerInterface $container, Config $config)
+    public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
-        $this->config    = $config;
     }
 
     /**
-     * {@inheritdoc}
+     * Process an incoming server request and return a response, optionally delegating
+     * response creation to a handler.
+     *
+     * @param ServerRequestInterface $request
+     * @param RequestHandlerInterface $handler
+     * @return ResponseInterface
+     * @throws
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -56,37 +57,39 @@ class ErrorMiddleware implements MiddlewareInterface
     /**
      * Get Error response.
      *
-     * @param  \Psr\Http\Message\ServerRequestInterface $request
-     * @param  \Exception $exception
-     * @return \Psr\Http\Message\ResponseInterface
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     * @throws \Eureka\Component\Routing\Exception\RoutingException
+     * @param ServerRequestInterface $request
+     * @param \Exception $exception
+     * @return ResponseInterface
+     * @throws
      */
-    private function getErrorResponse(ServerRequestInterface $request, \Exception $exception)
+    private function getErrorResponse(ServerRequestInterface $request, \Exception $exception): ResponseInterface
     {
         $httpCode  = ($exception instanceof RouteNotFoundException ? 404 : 500);
-        $isAjax    = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
-        $isDisplay = $this->config->get('app.error.display');
+        $isDisplay = $this->container->getParameter('kernel.debug');
+        $isAjax    = false;
 
-        $response = new Response($httpCode);
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower(
+                $_SERVER['HTTP_X_REQUESTED_WITH']
+            ) === 'xmlhttprequest') {
+            $isAjax = true;
+        }
+
+        $response = $this->container->get(HttpFactory::class)->createResponse($httpCode);
 
         $exceptionDetail = ($isDisplay ? $exception->getTraceAsString() : '');
 
         if ($isAjax) {
 
             //~ Ajax response error
-            $content = new \stdClass();
+            $content          = new \stdClass();
             $content->message = $exception->getMessage();
             $content->code    = $exception->getCode();
             $content->trace   = $exceptionDetail;
 
             $content = json_encode($content);
-
         } else {
 
-            /** @var \Eureka\Component\Routing\Router $router */
-            $router = $this->container->get('router');
+            /*$router = $this->container->get(Router::class);
 
             if ($exception instanceof RouteNotFoundException) {
                 $route = $router->get('page404');
@@ -94,31 +97,31 @@ class ErrorMiddleware implements MiddlewareInterface
                 $route = $router->get('page500');
             }
 
-            $controller = $route->getControllerName();
-            $action     = $route->getActionName();
+            $controllerClass = $route->getControllerName();
+            $action          = $route->getActionName();
 
-            if (!class_exists($controller)) {
-                throw new \DomainException('Controller does not exists! (controller: ' . $controller . ')');
-            }
-
-            $controller = new $controller($this->container, $this->config, $route, $request);
+            $controller = $this->container->get($controllerClass);
 
             if (!($controller instanceof ControllerInterface)) {
-                throw new \LogicException('Controller does not implement Controller Interface! (controller: ' . get_class($controller) . ')');
+                throw new \LogicException(
+                    'Controller does not implement Controller Interface! (controller: ' . get_class($controller) . ')'
+                );
             }
 
             if (!method_exists($controller, $action)) {
-                throw new \DomainException('Action controller does not exists! (' . get_class($controller) . '::' . $action);
+                throw new \DomainException(
+                    'Action controller does not exists! (' . get_class($controller) . '::' . $action
+                );
             }
 
-            $controller->runBefore();
+            $controller->preAction();
             $response = $controller->$action($request, $exception);
-            $controller->runAfter();
+            $controller->postAction();
 
             return $response;
-
+            */
             //~ Basic html response error
-            //$content = '<pre>exception: ' . PHP_EOL . $exception->getMessage() . PHP_EOL . $exceptionDetail. '</pre>';
+            $content = '<pre>exception: ' . PHP_EOL . $exception->getMessage() . PHP_EOL . $exceptionDetail. '</pre>';
         }
 
         //~ Write content

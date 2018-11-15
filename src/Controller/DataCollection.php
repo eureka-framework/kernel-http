@@ -23,17 +23,17 @@ class DataCollection implements \Iterator
     protected $index = 0;
 
     /** @var array $indices Index of keys */
-    protected $indices = array();
+    protected $indices = [];
 
     /** @var array $collection Collection of data. */
-    protected $collection = array();
+    protected $collection = [];
 
     /**
      * DataCollection constructor.
      */
     public function __construct()
     {
-        $this->collection = array();
+        $this->collection = [];
     }
 
     /**
@@ -129,7 +129,7 @@ class DataCollection implements \Iterator
      */
     public function toArray()
     {
-        $array = array();
+        $array = [];
         foreach ($this as $key => $value) {
             $array[$key] = $value;
         }

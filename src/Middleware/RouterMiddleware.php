@@ -9,59 +9,75 @@
 
 namespace Eureka\Kernel\Http\Middleware;
 
-use Eureka\Component\Config\Config;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Psr\Container\ContainerInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Eureka\Component\Routing\Route;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Routing\Loader\YamlFileLoader;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\Router;
 
 class RouterMiddleware implements MiddlewareInterface
 {
-    /** @var \Psr\Container\ContainerInterface $container */
-    protected $container = null;
-
-    /** @var Config config */
-    protected $config = null;
-
-    /** @var \Eureka\Component\Routing\Router $collection */
-    private $router = null;
+    /** @var ContainerInterface $container */
+    protected $container;
 
     /**
-     * ExceptionMiddleware constructor.
+     * ControllerMiddleware constructor.
      *
      * @param ContainerInterface $container
-     * @param Config $config
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     * @throws \Psr\Container\ContainerExceptionInterface
      */
-    public function __construct(ContainerInterface $container, Config $config)
+    public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
-        $this->config    = $config;
-
-        $this->router = $container->get('router');
     }
 
     /**
-     * @param  \Psr\Http\Message\ServerRequestInterface $request
-     * @param  \Psr\Http\Server\RequestHandlerInterface
-     * @return \Psr\Http\Message\ResponseInterface
-     * @throws \Eureka\Kernel\Http\Middleware\Exception\RouteNotFoundException
-     * @throws \Eureka\Component\Routing\Exception\RoutingException
-     * @throws \Eureka\Component\Routing\Exception\ParameterException
+     * Process an incoming server request and return a response, optionally delegating
+     * response creation to a handler.
+     *
+     * @param ServerRequestInterface $request
+     * @param RequestHandlerInterface $handler
+     * @return ResponseInterface
+     * @throws
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $route = $this->router->match((string) $request->getUri(), false);
+        //~ Try to match url
+        $route = $this->getRouter()->match((string) $request->getUri()->getPath());
 
-        if (!($route instanceof Route)) {
-            throw new Exception\RouteNotFoundException('Route not found', 10001);
-        }
-
+        //~ Add route param to request
         $request = $request->withAttribute('route', $route);
 
         return $handler->handle($request);
+    }
+
+    /**
+     * @return \Symfony\Component\Routing\Router
+     */
+    private function getRouter()
+    {
+        $fileLocator = new FileLocator([$this->container->getParameter('kernel.directory.config')]);
+        $router = new Router(
+            new YamlFileLoader($fileLocator),
+            'routes.yaml',
+            ['cache_dir' => $this->container->getParameter('kernel.directory.cache')],
+            $this->getContext()
+        );
+
+        //~ Add router to the container
+        $this->container->set(Router::class, $router);
+
+        return $router;
+    }
+
+    /**
+     * @return RequestContext
+     */
+    private function getContext()
+    {
+        return new RequestContext('/');
     }
 }

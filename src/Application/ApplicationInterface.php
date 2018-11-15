@@ -19,7 +19,7 @@ interface ApplicationInterface
     /**
      * Run Application
      *
-     * @return void
+     * @return ApplicationInterface
      */
-    public function run();
+    public function run(): ApplicationInterface;
 }

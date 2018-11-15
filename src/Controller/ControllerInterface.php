@@ -21,12 +21,12 @@ interface ControllerInterface
      *
      * @return void
      */
-    public function runBefore();
+    public function preAction(): void;
 
     /**
      * This method is executed after the main run() method.
      *
      * @return void
      */
-    public function runAfter();
+    public function postAction(): void;
 }

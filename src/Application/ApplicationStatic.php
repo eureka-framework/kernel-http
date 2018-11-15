@@ -9,11 +9,10 @@
 
 namespace Eureka\Kernel\Http\Application;
 
-use Eureka\Component\Config\Config;
-use Eureka\Component\Http\Message as HttpMessage;
-use Eureka\Component\Http\Server as HttpServer;
+use Eureka\Component\Http;
+use Eureka\Kernel\Http\Kernel;
 use Eureka\Kernel\Http\Middleware;
-use Psr\Container;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Application class
@@ -25,76 +24,92 @@ class ApplicationStatic implements ApplicationInterface
     /** @var \Psr\Http\Server\MiddlewareInterface[] $middleware */
     protected $middleware = [];
 
-    /** @var \Psr\Container\ContainerInterface $container */
-    protected $container = null;
-
-    /** @var \Eureka\Component\Config\Config $container */
-    protected $config = null;
-
-    /** @var string $type Static content type. */
-    protected $type = '';
-
+    /** @var Kernel $container */
+    protected $kernel = null;
 
     /**
-     * ApplicationStatic constructor.
+     * Application constructor.
      *
-     * @param \Psr\Container\ContainerInterface $container
-     * @param \Eureka\Component\Config\Config $config
+     * @param Kernel $kernel
      */
-    public function __construct(Container\ContainerInterface $container, Config $config)
+    public function __construct(Kernel $kernel)
     {
-        $this->container = $container;
-        $this->config    = $config;
+        $this->kernel = $kernel;
     }
 
     /**
      * Run application based on the route.
      *
-     * @return void
+     * @return ApplicationInterface
      */
-    public function run()
+    public function run(): ApplicationInterface
     {
-        $this->loadMiddleware();
+        $httpFactory = $this->kernel->getContainer()->get(Http\Message\HttpFactory::class);
 
         //~ Default response
-        $response = new HttpMessage\Response();
+        $response = $httpFactory->createResponse();
 
-        //~ Get response
-        $handler  = new HttpServer\RequestHandler($response, $this->middleware);
-        $response = $handler->handle(HttpMessage\ServerRequest::createFromGlobal());
+        try {
+            $method  = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
+            $uri     = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+            $request = $httpFactory->createServerRequest($method, $uri, $_SERVER);
+
+            $this->loadMiddleware($request);
+
+            //~ Get response
+            $handler  = new Http\Server\RequestHandler($response, $this->middleware);
+            $response = $handler->handle($request);
+        } catch (\Exception $exception) {
+
+            $body = '<h3>' . $exception->getMessage() . '</h3>';
+            if ($this->kernel->getContainer()->getParameter('kernel.debug') === true) {
+                $body .= '<pre>' . var_export($exception->getTraceAsString(), true) . '</pre>';
+            }
+            $response->getBody()->write($body);
+        }
 
         //~ Send response
-        (new HttpMessage\ResponseSender($response))->send();
+        (new Http\Message\ResponseSender($response))->send();
+
+        return $this;
     }
 
     /**
-     * Load middleware
-     *
+     * @param ServerRequestInterface $request
      * @return void
      */
-    private function loadMiddleware()
+    private function loadMiddleware(ServerRequestInterface $request)
     {
-        $this->middleware[] = new Middleware\ErrorMiddleware($this->container, $this->config);
+        $this->middleware[] = $this->kernel->getContainer()->get(Middleware\ErrorMiddleware::class);
 
         //~ Request
-        $request = HttpMessage\ServerRequest::createFromGlobal();
-        $query   = $request->getQueryParams();
+        $query = $request->getQueryParams();
 
-        $this->type = $query['type'];
-
-        switch ($this->type) {
+        switch ($query['type']) {
             case 'css':
-                $this->middleware[] = new Middleware\StaticMiddleware\CssMiddleware($this->container, $this->config);
+                $this->middleware[] = $this->kernel->getContainer()->get(
+                    Middleware\StaticMiddleware\CssMiddleware::class
+                )
+                ;
                 break;
             case 'js':
             case 'map':
-                $this->middleware[] = new Middleware\StaticMiddleware\JsMiddleware($this->container, $this->config);
+                $this->middleware[] = $this->kernel->getContainer()->get(
+                    Middleware\StaticMiddleware\JsMiddleware::class
+                )
+                ;
                 break;
             case 'image':
-                $this->middleware[] = new Middleware\StaticMiddleware\ImageMiddleware($this->container, $this->config);
+                $this->middleware[] = $this->kernel->getContainer()->get(
+                    Middleware\StaticMiddleware\ImageMiddleware::class
+                )
+                ;
                 break;
             case 'font':
-                $this->middleware[] = new Middleware\StaticMiddleware\FontMiddleware($this->container, $this->config);
+                $this->middleware[] = $this->kernel->getContainer()->get(
+                    Middleware\StaticMiddleware\FontMiddleware::class
+                )
+                ;
                 break;
         }
     }
