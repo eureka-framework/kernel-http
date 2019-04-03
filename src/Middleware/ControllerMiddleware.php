@@ -84,16 +84,12 @@ class ControllerMiddleware implements MiddlewareInterface
 
         if ($controller instanceof ControllerInterface) {
             //~ Set context action
-            $controller
-                ->setContainer($this->container)
-                ->setRoute($route)
-                ->setRouter($this->container->get(Router::class))
-            ;
+            $controller->setRoute($route);
 
             //~ Call controller pre action, action & post action.
-            $controller->preAction();
+            $controller->preAction($request);
             $response = $controller->$action($request);
-            $controller->postAction();
+            $controller->postAction($request);
         } else {
             $response = $controller->$action($request);
         }

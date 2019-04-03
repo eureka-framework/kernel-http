@@ -10,7 +10,10 @@
 namespace Eureka\Kernel\Http\Controller;
 
 use Eureka\Component\Http\HttpFactory;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface as SymfonyContainerInterface;
 use Symfony\Component\Routing\Router;
 
 /**
@@ -20,52 +23,48 @@ use Symfony\Component\Routing\Router;
  */
 abstract class Controller implements ControllerInterface
 {
-    /** @var Router $router */
-    private $router;
-
     /** @var array $route Route parameters */
-    private $route;
+    private $route = [];
 
     /** @var ContainerInterface $container */
     private $container;
 
-    /** @var DataCollection $context Data collection object. */
-    protected $context = null;
+    /** @var bool $debug */
+    private $debug = false;
 
-
-    /**
-     * Class constructor
-     */
-    public function __construct()
-    {
-        $this->context = new DataCollection();
-    }
+    /** @var string $environment */
+    private $environment = 'prod';
 
     /**
-     * This method is executed before the main run() method.
+     * This method is executed before the main controller action method.
      *
+     * @param null|ServerRequestInterface $request
      * @return void
      */
-    public function preAction(): void
+    public function preAction(?ServerRequestInterface $request = null): void
     {
     }
 
     /**
-     * This method is executed after the main run() method.
+     * This method is executed after the main controller action method.
      *
-     *& @return void
+     * @param null|ServerRequestInterface $request
+     * @return void
      */
-    public function postAction(): void
+    public function postAction(?ServerRequestInterface $request = null): void
     {
     }
 
     /**
      * @param ContainerInterface $container
-     * @return $this
+     * @return ControllerInterface
      */
-    public function setContainer(ContainerInterface $container): self
+    public function setContainer(ContainerInterface $container): ControllerInterface
     {
-        $this->container = $container;
+        /** @var SymfonyContainerInterface $container */
+        $this->container   = $container;
+        $this->debug       = $container->getParameter('kernel.debug');
+        $this->environment = $container->getParameter('kernel.environment');
 
         return $this;
     }
@@ -76,7 +75,7 @@ abstract class Controller implements ControllerInterface
      * @param array $route
      * @return $this
      */
-    public function setRoute(array $route): self
+    public function setRoute(array $route): ControllerInterface
     {
         $this->route = $route;
 
@@ -84,16 +83,43 @@ abstract class Controller implements ControllerInterface
     }
 
     /**
-     * Set router.
-     *
-     * @param Router $router
-     * @return $this
+     * @return bool
      */
-    public function setRouter(Router $router): self
+    protected function isDebug(): bool
     {
-        $this->router = $router;
+        return $this->debug;
+    }
 
-        return $this;
+    /**
+     * @return bool
+     */
+    protected function isDev(): bool
+    {
+        return $this->environment === 'dev';
+    }
+
+    /**
+     * @return bool
+     */
+    protected function isProd(): bool
+    {
+        return $this->environment === 'prod';
+    }
+
+    /**
+     * @return string
+     */
+    protected function environment(): string
+    {
+        return $this->environment;
+    }
+
+    /**
+     * @return Router
+     */
+    protected function getRouter(): Router
+    {
+        return $this->getContainer()->get('router');
     }
 
     /**
@@ -101,7 +127,20 @@ abstract class Controller implements ControllerInterface
      */
     protected function getHttpFactory(): HttpFactory
     {
-        return $this->getContainer()->get(HttpFactory::class);
+        return $this->getContainer()->get('http_factory');
+    }
+
+    /**
+     * @param string $content
+     * @param int $code
+     * @return ResponseInterface
+     */
+    protected function getResponse(string $content, int $code = 200): ResponseInterface
+    {
+        $response = $this->getHttpFactory()->createResponse($code);
+        $response->getBody()->write($content);
+
+        return $response;
     }
 
     /**
@@ -133,17 +172,18 @@ abstract class Controller implements ControllerInterface
      */
     protected function getUri(string $name, $params = []): string
     {
-        return $this->router->generate($name, $params);
+        return $this->getRouter()->generate($name, $params);
     }
 
     /**
-     * Get data collection.
-     *
-     * @return DataCollection
+     * @param ServerRequestInterface $request
+     * @return bool
      */
-    protected function getContext()
+    protected function isAjax(ServerRequestInterface $request): bool
     {
-        return $this->context;
+        $server = $request->getServerParams();
+
+        return !empty($server['HTTP_X_REQUESTED_WITH']) && strtolower($server['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
     }
 
     /**
@@ -152,9 +192,8 @@ abstract class Controller implements ControllerInterface
      * @param  string $url
      * @param  int    $status
      * @return void
-     * @throws \Exception
      */
-    protected function redirect($url, $status = 301)
+    protected function redirect($url, $status = 301): void
     {
         $status = (int) $status;
 
@@ -166,30 +205,25 @@ abstract class Controller implements ControllerInterface
             header('Location: ' . $url);
             exit(0);
         } else {
-            throw new \Exception('Url is empty !');
+            throw new \InvalidArgumentException('Url is empty !');
         }
     }
 
     /**
-     * Redirect on specified route name.
-     *
-     * @param  string $routeName
-     * @param  array  $params
-     * @param  int    $status
+     * @param $routeName
+     * @param array $params
+     * @param int $status
      * @return void
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Exception
      */
-    protected function redirectToRoute($routeName, $params = [], $status = 200)
+    protected function redirectToRoute($routeName, $params = [], $status = 200): void
     {
         $this->redirect($this->getUri($routeName, $params), $status);
     }
 
     /**
-     * @return \Psr\Container\ContainerInterface
+     * @return ContainerInterface
      */
-    final private function getContainer(): \Psr\Container\ContainerInterface
+    final private function getContainer(): ContainerInterface
     {
         return $this->container;
     }

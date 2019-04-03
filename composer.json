@@ -19,6 +19,8 @@
   },
 
   "require": {
+    "ext-json": "*",
+
     "eureka/component-http": "@dev",
 
     "symfony/config": "^4.1",

@@ -42,7 +42,7 @@ class Application implements ApplicationInterface
      */
     public function run(): ApplicationInterface
     {
-        $httpFactory = $this->kernel->getContainer()->get(Http\HttpFactory::class);
+        $httpFactory = $this->kernel->getContainer()->get('http_factory');
 
         //~ Default response
         $response = $httpFactory->createResponse();
