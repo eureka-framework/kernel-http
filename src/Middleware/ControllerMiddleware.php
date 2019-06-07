@@ -10,12 +10,12 @@
 namespace Eureka\Kernel\Http\Middleware;
 
 use Eureka\Kernel\Http\Controller\ControllerInterface;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Routing\Router;
+
 
 /**
  * Class ControllerMiddleware

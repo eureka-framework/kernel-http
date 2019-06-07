@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * Copyright (c) Romain Cottard
@@ -63,7 +63,7 @@ class Kernel
         $this->varDirectory  = $rootDirectory . DIRECTORY_SEPARATOR . 'var';
 
         $this
-            ->initErrorReporting(E_ALL, true) // report & display all
+            ->initErrorReporting(E_ALL, 'true') // report & display all
             ->initVarSubDir()
             ->initContainer()
             ->initErrorReporting() // report & display according to the config
@@ -105,14 +105,14 @@ class Kernel
     /**
      * Initialize error reporting & display.
      *
-     * @param null $reporting
-     * @param null $display
+     * @param int|null $reporting
+     * @param string|null $display
      * @return Kernel
      */
-    protected function initErrorReporting($reporting = null, $display = null): self
+    protected function initErrorReporting(?int $reporting = null, ?string $display = null): self
     {
         error_reporting($reporting !== null ? $reporting : $this->container->getParameter('kernel.error.reporting'));
-        ini_set('display_errors', $display !== null ? $display : $this->container->getParameter('kernel.error.display'));
+        ini_set('display_errors', $display !== null ? $display : (string) $this->container->getParameter('kernel.error.display'));
 
         return $this;
     }
@@ -202,7 +202,7 @@ class Kernel
      */
     protected function getContainerClass(): string
     {
-        return $this->name . ucfirst($this->environment) . ($this->debug ? 'Debug' : '') . 'ProjectContainer';
+        return $this->name . ucfirst($this->environment) . /*($this->debug ? 'Debug' : '') .*/ 'ProjectContainer';
     }
 
     /**

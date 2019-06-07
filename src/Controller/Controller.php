@@ -144,6 +144,21 @@ abstract class Controller implements ControllerInterface
     }
 
     /**
+     * @param mixed $content
+     * @param int $code
+     * @param bool $jsonEncode
+     * @return ResponseInterface
+     */
+    protected function getJsonResponse($content, int $code = 200, bool $jsonEncode = true): ResponseInterface
+    {
+        if ($jsonEncode || (!is_string($content) && !is_numeric($content)) ) {
+            $content = json_encode($content);
+        }
+
+        return $this->getResponse($content, $code)->withAddedHeader('Content-Type', 'application/json');
+    }
+
+    /**
      * Get route parameters
      *
      * @return array
