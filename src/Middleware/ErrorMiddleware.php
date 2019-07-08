@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * Copyright (c) Romain Cottard
@@ -60,7 +60,7 @@ class ErrorMiddleware implements MiddlewareInterface
      */
     private function getErrorResponse(ServerRequestInterface $request, \Exception $exception): ResponseInterface
     {
-        $this->controller->preAction();
+        $this->controller->preAction($request);
         $response = $this->controller->errorAction($request, $exception);
         $this->controller->postAction();
 

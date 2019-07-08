@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * Copyright (c) Romain Cottard
@@ -11,6 +11,10 @@ namespace Eureka\Kernel\Http\Application;
 
 use Eureka\Component\Http;
 use Eureka\Kernel\Http\Kernel;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
 
 /**
  * Application class
@@ -19,7 +23,7 @@ use Eureka\Kernel\Http\Kernel;
  */
 class Application implements ApplicationInterface
 {
-    /** @var \Psr\Http\Server\MiddlewareInterface[] $middleware */
+    /** @var MiddlewareInterface[] $middleware */
     protected $middleware = [];
 
     /** @var Kernel $container */
@@ -42,19 +46,23 @@ class Application implements ApplicationInterface
      */
     public function run(): ApplicationInterface
     {
+        /** @var Http\HttpFactory $httpFactory */
         $httpFactory = $this->kernel->getContainer()->get('http_factory');
 
-        //~ Default response
+        /** @var ResponseInterface $response */
         $response = $httpFactory->createResponse();
         $method   = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
         $uri      = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+
+        /** @var ServerRequestInterface $serverRequest */
+        $serverRequest = $httpFactory->createServerRequest($method, $uri, $_SERVER);
 
         try {
             $this->loadMiddleware();
 
             //~ Get response
             $handler  = new Http\Server\RequestHandler($response, $this->middleware);
-            $response = $handler->handle($httpFactory->createServerRequest($method, $uri, $_SERVER));
+            $response = $handler->handle($serverRequest);
 
         } catch (\Exception $exception) {
 
@@ -75,7 +83,6 @@ class Application implements ApplicationInterface
      * Load middleware
      *
      * @return void
-     * @throws \Psr\Container\ContainerExceptionInterface
      */
     private function loadMiddleware()
     {

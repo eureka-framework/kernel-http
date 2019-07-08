@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * Copyright (c) Romain Cottard
@@ -9,6 +9,7 @@
 
 namespace Eureka\Kernel\Http\Controller;
 
+use Eureka\Component\Http\HttpFactory;
 use Eureka\Kernel\Http\Middleware\Exception\RouteNotFoundException;
 use Eureka\Kernel\Http\Middleware\Exception\UnauthorizedException;
 use Psr\Http\Message\ResponseInterface;
@@ -30,6 +31,21 @@ class ErrorController extends Controller
     public function __construct(ContainerInterface $container)
     {
         $this->setContainer($container);
+    }
+
+    /**
+     * @param ServerRequestInterface|null $request
+     * @return void
+     */
+    public function preAction(?ServerRequestInterface $request = null): void
+    {
+        $httpFactory = new HttpFactory();
+        $this->setRequestFactory($httpFactory);
+        $this->setServerRequestFactory($httpFactory);
+        $this->setResponseFactory($httpFactory);
+        $this->setStreamFactory($httpFactory);
+        $this->setUriFactory($httpFactory);
+        $this->setServerRequest($request);
     }
 
     /**
@@ -67,10 +83,13 @@ class ErrorController extends Controller
             '<pre>exception[' . get_class($exception) . ']: ' . PHP_EOL .
             $exception->getMessage() . PHP_EOL .
             ($this->isDebug() ? $exception->getTraceAsString() . PHP_EOL : '') . PHP_EOL .
-            var_export($request, true) .
             '</pre>';
     }
 
+    /**
+     * @param \Exception $exception
+     * @return false|string
+     */
     protected function getErrorContentJson(\Exception $exception)
     {
         //~ Ajax response error
@@ -79,6 +98,8 @@ class ErrorController extends Controller
         $content->code    = $exception->getCode();
         $content->trace   = ($this->isDebug() ? $exception->getTraceAsString() : '');
 
-        return json_encode($content);
+        $content = json_encode($content);
+
+        return $content !== false ? $content : '';
     }
 }

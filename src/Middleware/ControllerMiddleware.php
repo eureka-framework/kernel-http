@@ -67,7 +67,7 @@ class ControllerMiddleware implements MiddlewareInterface
      */
     private function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $route = $request->getAttribute('route');
+        $route = $request->getAttribute('route') ?? [];
 
         //~ Remove route from request
         $request = $request->withoutAttribute('route');

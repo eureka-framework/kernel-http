@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * Copyright (c) Romain Cottard
@@ -39,11 +39,11 @@ class DataCollection implements \Iterator
     /**
      * Add data to the collection.
      *
-     * @param  string $key
-     * @param  mixed $value
+     * @param string $key
+     * @param mixed $value
      * @return $this
      */
-    public function add($key, $value)
+    public function add($key, $value): self
     {
         $this->collection[$key]       = $value;
         $this->indices[$this->length] = $key;
@@ -57,7 +57,7 @@ class DataCollection implements \Iterator
      *
      * @return int
      */
-    public function length()
+    public function length(): int
     {
         return $this->length;
     }
@@ -77,7 +77,7 @@ class DataCollection implements \Iterator
      *
      * @return void
      */
-    public function reset()
+    public function reset(): void
     {
         $this->index = 0;
     }
@@ -97,7 +97,7 @@ class DataCollection implements \Iterator
      *
      * @return void
      */
-    public function next()
+    public function next(): void
     {
         $this->index++;
     }
@@ -107,7 +107,7 @@ class DataCollection implements \Iterator
      *
      * @return void
      */
-    public function rewind()
+    public function rewind(): void
     {
         $this->index = 0;
     }
@@ -117,7 +117,7 @@ class DataCollection implements \Iterator
      *
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return ($this->index < $this->length);
     }
@@ -127,7 +127,7 @@ class DataCollection implements \Iterator
      *
      * @return array
      */
-    public function toArray()
+    public function toArray(): array
     {
         $array = [];
         foreach ($this as $key => $value) {

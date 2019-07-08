@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * Copyright (c) Romain Cottard
@@ -9,12 +9,13 @@
 
 namespace Eureka\Kernel\Http\Controller;
 
-use Eureka\Component\Http\HttpFactory;
+use Eureka\Kernel\Http\Traits\HttpFactoryAwareTrait;
+use Eureka\Kernel\Http\Traits\RouterAwareTrait;
+use Eureka\Kernel\Http\Traits\ServerRequestAwareTrait;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface as SymfonyContainerInterface;
-use Symfony\Component\Routing\Router;
 
 /**
  * Controller class
@@ -23,8 +24,9 @@ use Symfony\Component\Routing\Router;
  */
 abstract class Controller implements ControllerInterface
 {
-    /** @var array $route Route parameters */
-    private $route = [];
+    use HttpFactoryAwareTrait,
+        RouterAwareTrait,
+        ServerRequestAwareTrait;
 
     /** @var ContainerInterface $container */
     private $container;
@@ -70,19 +72,6 @@ abstract class Controller implements ControllerInterface
     }
 
     /**
-     * Set route parameters.
-     *
-     * @param array $route
-     * @return $this
-     */
-    public function setRoute(array $route): ControllerInterface
-    {
-        $this->route = $route;
-
-        return $this;
-    }
-
-    /**
      * @return bool
      */
     protected function isDebug(): bool
@@ -115,29 +104,13 @@ abstract class Controller implements ControllerInterface
     }
 
     /**
-     * @return Router
-     */
-    protected function getRouter(): Router
-    {
-        return $this->getContainer()->get('router');
-    }
-
-    /**
-     * @return HttpFactory
-     */
-    protected function getHttpFactory(): HttpFactory
-    {
-        return $this->getContainer()->get('http_factory');
-    }
-
-    /**
      * @param string $content
      * @param int $code
      * @return ResponseInterface
      */
     protected function getResponse(string $content, int $code = 200): ResponseInterface
     {
-        $response = $this->getHttpFactory()->createResponse($code);
+        $response = $this->getResponseFactory()->createResponse($code);
         $response->getBody()->write($content);
 
         return $response;
@@ -149,56 +122,13 @@ abstract class Controller implements ControllerInterface
      * @param bool $jsonEncode
      * @return ResponseInterface
      */
-    protected function getJsonResponse($content, int $code = 200, bool $jsonEncode = true): ResponseInterface
+    protected function getResponseJson($content, int $code = 200, bool $jsonEncode = true): ResponseInterface
     {
         if ($jsonEncode || (!is_string($content) && !is_numeric($content)) ) {
             $content = json_encode($content);
         }
 
         return $this->getResponse($content, $code)->withAddedHeader('Content-Type', 'application/json');
-    }
-
-    /**
-     * Get route parameters
-     *
-     * @return array
-     */
-    protected function getRoute(): array
-    {
-        return $this->route;
-    }
-
-    /**
-     * @param string $name
-     * @param mixed $default
-     * @return mixed
-     */
-    protected function getParameter(string $name, $default = null)
-    {
-        return isset($this->route[$name]) ? $this->route[$name] : $default;
-    }
-
-    /**
-     * Get uri by name.
-     *
-     * @param string $name
-     * @param array $params
-     * @return string
-     */
-    protected function getUri(string $name, $params = []): string
-    {
-        return $this->getRouter()->generate($name, $params);
-    }
-
-    /**
-     * @param ServerRequestInterface $request
-     * @return bool
-     */
-    protected function isAjax(ServerRequestInterface $request): bool
-    {
-        $server = $request->getServerParams();
-
-        return !empty($server['HTTP_X_REQUESTED_WITH']) && strtolower($server['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
     }
 
     /**
@@ -232,15 +162,6 @@ abstract class Controller implements ControllerInterface
      */
     protected function redirectToRoute($routeName, $params = [], $status = 200): void
     {
-        $this->redirect($this->getUri($routeName, $params), $status);
+        $this->redirect($this->getRouteUri($routeName, $params), $status);
     }
-
-    /**
-     * @return ContainerInterface
-     */
-    final private function getContainer(): ContainerInterface
-    {
-        return $this->container;
-    }
-
 }

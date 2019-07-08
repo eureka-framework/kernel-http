@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * Copyright (c) Romain Cottard
@@ -29,9 +29,9 @@ interface ControllerInterface
      * Set route parameters.
      *
      * @param array $route
-     * @return ControllerInterface
+     * @return void
      */
-    public function setRoute(array $route): self;
+    public function setRoute(array $route): void;
 
     /**
      * This method is executed before the main controller action method.

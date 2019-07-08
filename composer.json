@@ -21,7 +21,7 @@
   "require": {
     "ext-json": "*",
 
-    "eureka/component-http": "@dev",
+    "eureka/component-http": "^4.1",
 
     "symfony/config": "^4.1",
     "symfony/dependency-injection": "^4.1",
