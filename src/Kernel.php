@@ -202,7 +202,7 @@ class Kernel
      */
     protected function getContainerClass(): string
     {
-        return $this->name . ucfirst($this->environment) . /*($this->debug ? 'Debug' : '') .*/ 'ProjectContainer';
+        return $this->name . ucfirst($this->environment) . ($this->debug ? 'Debug' : '') . 'ProjectContainer';
     }
 
     /**
