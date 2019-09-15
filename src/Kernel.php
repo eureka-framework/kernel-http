@@ -136,6 +136,7 @@ class Kernel
         //~ Load packages config files
         $loader->load($this->getConfigDir() . '/{packages}/*' . self::CONFIG_EXTENSIONS, 'glob');
         $loader->load($this->getConfigDir() . '/{packages}/' . $this->environment . '/**/*' . self::CONFIG_EXTENSIONS, 'glob');
+        $loader->load($this->getConfigDir() . '/{packages}/**/*' . self::CONFIG_EXTENSIONS, 'glob');
 
 
         //~ Load services config files
