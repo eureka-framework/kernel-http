@@ -52,10 +52,9 @@ class Application implements ApplicationInterface
         /** @var ResponseInterface $response */
         $response = $httpFactory->createResponse();
         $method   = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
-        $uri      = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
 
         /** @var ServerRequestInterface $serverRequest */
-        $serverRequest = $httpFactory->createServerRequest($method, $uri, $_SERVER);
+        $serverRequest = $httpFactory->createServerRequest($method, '', $_SERVER);
 
         try {
             $this->loadMiddleware();

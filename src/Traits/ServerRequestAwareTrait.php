@@ -98,7 +98,7 @@ trait ServerRequestAwareTrait
     /**
      * @return bool
      */
-    protected function isAjax(ServerRequestInterface $serverRequest): bool
+    protected function isAjax(): bool
     {
         $server = $this->serverRequest->getServerParams();
 
