@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * Copyright (c) Romain Cottard
@@ -9,6 +9,9 @@
 
 namespace Eureka\Kernel\Http\Controller;
 
+use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ServerRequestInterface;
+
 /**
  * Controller interface
  *
@@ -17,16 +20,32 @@ namespace Eureka\Kernel\Http\Controller;
 interface ControllerInterface
 {
     /**
-     * This method is executed before the main controller method.
-     *
-     * @return void
+     * @param ContainerInterface $container
+     * @return ControllerInterface
      */
-    public function runBefore();
+    public function setContainer(ContainerInterface $container): self;
 
     /**
-     * This method is executed after the main run() method.
+     * Set route parameters.
      *
+     * @param array $route
      * @return void
      */
-    public function runAfter();
+    public function setRoute(array $route): void;
+
+    /**
+     * This method is executed before the main controller action method.
+     *
+     * @param null|ServerRequestInterface $request
+     * @return void
+     */
+    public function preAction(?ServerRequestInterface $request = null): void;
+
+    /**
+     * This method is executed after the main controller action method.
+     *
+     * @param null|ServerRequestInterface $request
+     * @return void
+     */
+    public function postAction(?ServerRequestInterface $request = null): void;
 }

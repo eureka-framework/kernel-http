@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * Copyright (c) Romain Cottard
@@ -9,10 +9,12 @@
 
 namespace Eureka\Kernel\Http\Application;
 
-use Eureka\Component\Config\Config;
-use Eureka\Component\Http\Message as HttpMessage;
-use Eureka\Component\Http\Server as HttpServer;
-use Psr\Container;
+use Eureka\Component\Http;
+use Eureka\Kernel\Http\Kernel;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
 
 /**
  * Application class
@@ -21,73 +23,74 @@ use Psr\Container;
  */
 class Application implements ApplicationInterface
 {
-    /** @var \Eureka\Psr\Http\Server\MiddlewareInterface[] $middleware */
+    /** @var MiddlewareInterface[] $middleware */
     protected $middleware = [];
 
-    /** @var \Psr\Container\ContainerInterface $container */
-    protected $container = null;
-
-    /** @var \Eureka\Component\Config\Config $container */
-    protected $config = null;
+    /** @var Kernel $container */
+    protected $kernel = null;
 
     /**
      * Application constructor.
      *
-     * @param  \Psr\Container\ContainerInterface $container
-     * @param  \Eureka\Component\Config\Config $config
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     * @throws \Psr\Container\ContainerExceptionInterface
+     * @param Kernel $kernel
      */
-    public function __construct(Container\ContainerInterface $container, Config $config)
+    public function __construct(Kernel $kernel)
     {
-        $this->container = $container;
-        $this->config    = $config;
+        $this->kernel = $kernel;
     }
 
     /**
      * Run application based on the route.
      *
-     * @return void
+     * @return ApplicationInterface
      */
-    public function run()
+    public function run(): ApplicationInterface
     {
-        //~ Default response
-        $response = new HttpMessage\Response();
+        /** @var Http\HttpFactory $httpFactory */
+        $httpFactory = $this->kernel->getContainer()->get('http_factory');
+
+        /** @var ResponseInterface $response */
+        $response = $httpFactory->createResponse();
+        $method   = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
+
+        /** @var ServerRequestInterface $serverRequest */
+        $serverRequest = $httpFactory->createServerRequest($method, '', $_SERVER);
 
         try {
             $this->loadMiddleware();
 
             //~ Get response
-            $handler  = new HttpServer\RequestHandler($response, $this->middleware);
-            $response = $handler->handle(HttpMessage\ServerRequest::createFromGlobal());
+            $handler  = new Http\Server\RequestHandler($response, $this->middleware);
+            $response = $handler->handle($serverRequest);
 
-        } catch(Container\ContainerExceptionInterface $exception) {
+        } catch (\Exception $exception) {
 
             $body = '<h3>' . $exception->getMessage() . '</h3>';
-            if (true === $this->config->get('kernel.debug')) {
+            if ($this->kernel->getContainer()->getParameter('kernel.debug') === true) {
                  $body .= '<pre>' . var_export($exception->getTraceAsString(), true) . '</pre>';
             }
             $response->getBody()->write($body);
         }
 
         //~ Send response
-        (new HttpMessage\ResponseSender($response))->send();
+        (new Http\Message\ResponseSender($response))->send();
+
+        return $this;
     }
 
     /**
      * Load middleware
      *
      * @return void
-     * @throws \Psr\Container\ContainerExceptionInterface
      */
     private function loadMiddleware()
     {
         $this->middleware = [];
 
-        $list = $this->config->get('app.middleware');
+        $list = $this->kernel->getContainer()->getParameter('app.middleware');
 
-        foreach ($list as $name => $conf) {
-            $this->middleware[] = new $conf['class']($this->container, $this->config);
+        foreach ($list as $service) {
+            $this->middleware[] = $this->kernel->getContainer()->get($service);
         }
     }
 }

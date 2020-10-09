@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * Copyright (c) Romain Cottard
@@ -9,57 +9,58 @@
 
 namespace Eureka\Kernel\Http\Middleware;
 
-use Eureka\Component\Config\Config;
-use Eureka\Psr\Http\Server\MiddlewareInterface;
-use Eureka\Psr\Http\Server\RequestHandlerInterface;
-use Psr\Container\ContainerInterface;
+use Eureka\Kernel\Http\Middleware\Exception\RouteNotFoundException;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Eureka\Component\Routing\Route;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
+use Symfony\Component\Routing\Router;
 
 class RouterMiddleware implements MiddlewareInterface
 {
-    /** @var \Psr\Container\ContainerInterface $container */
-    protected $container = null;
-
-    /** @var Config config */
-    protected $config = null;
-
-    /** @var \Eureka\Component\Routing\Router $collection */
-    private $router = null;
+    /** @var Router $router */
+    protected $router;
 
     /**
-     * ExceptionMiddleware constructor.
+     * RouterMiddleware constructor.
      *
-     * @param ContainerInterface $container
-     * @param Config $config
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     * @throws \Psr\Container\ContainerExceptionInterface
+     * @param Router $router
      */
-    public function __construct(ContainerInterface $container, Config $config)
+    public function __construct(Router $router)
     {
-        $this->container = $container;
-        $this->config    = $config;
-
-        $this->router = $container->get('router');
+        $this->router = $router;
     }
 
     /**
-     * @param  \Psr\Http\Message\ServerRequestInterface $request
-     * @param  \Eureka\Psr\Http\Server\RequestHandlerInterface
-     * @return \Psr\Http\Message\ResponseInterface
-     * @throws \Eureka\Kernel\Http\Middleware\Exception\RouteNotFoundException
-     * @throws \Eureka\Component\Routing\Exception\RoutingException
-     * @throws \Eureka\Component\Routing\Exception\ParameterException
+     * Process an incoming server request and return a response, optionally delegating
+     * response creation to a handler.
+     *
+     * @param ServerRequestInterface $request
+     * @param RequestHandlerInterface $handler
+     * @return ResponseInterface
+     * @throws
      */
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler)
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $route = $this->router->match((string) $request->getUri(), false);
-
-        if (!($route instanceof Route)) {
-            throw new Exception\RouteNotFoundException('Route not found', 10001);
+        //~ Try to match url
+        try {
+            $route = $this->router->match((string) $request->getUri()->getPath());
+        } catch (ResourceNotFoundException $exception) {
+            throw new RouteNotFoundException('Page not found', 404, $exception);
         }
 
+        //~ Add route param to request
         $request = $request->withAttribute('route', $route);
+
+        //~ Add route element to requests
+        foreach ($route as $key => $value) {
+            if ($key[0] === '_') {
+                continue;
+            }
+
+            $request = $request->withAttribute($key, $value);
+        }
 
         return $handler->handle($request);
     }

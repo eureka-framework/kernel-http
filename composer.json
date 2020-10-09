@@ -19,18 +19,14 @@
   },
 
   "require": {
-    "psr/http-message": "^1.0.1",
-    "psr/container": "^1.0.0",
-    "psr/log": "^1.0.0",
-    "psr/cache": "^1.0.0",
-    "twig/twig": "~1.0",
+    "ext-json": "*",
 
-    "eureka/psr-http-server-handler": "^1.0",
-    "eureka/psr-http-server-middleware": "^1.0",
+    "eureka/component-http": "^4.1",
 
-    "eureka/component-config": "^3.0",
-    "eureka/component-container": "^3.1",
-    "eureka/component-http": "^3.0",
-    "eureka/component-routing": "^3.0"
+    "symfony/config": "^4.1",
+    "symfony/dependency-injection": "^4.1",
+    "symfony/finder": "^4.1",
+    "symfony/routing": "^4.1",
+    "symfony/yaml": "^4.1"
   }
 }

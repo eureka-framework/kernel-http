@@ -19,13 +19,17 @@ class ErrorHandler
     /**
      * Initialize Error handler.
      *
-     * @return void
+     * @param int $reporting
+     * @param bool $display
+     * @return $this
      */
-    public function init($reporting, $display)
+    public function init(int $reporting, bool $display): self
     {
         //~ Init errors
         error_reporting($reporting);
         ini_set('display_errors', $display);
+
+        return $this;
     }
 
     /**
@@ -33,25 +37,26 @@ class ErrorHandler
      *
      * @param  string $class Class Name.
      * @param  string $method Class method.
-     * @param  string $namespace Class Namespace.
-     * @return callback  Previous exception handler.
+     * @return $this
      */
-    public function register($class = 'ErrorHandler', $method = 'handler', $namespace = 'Eureka\Kernel\Http\Error')
+    public function register(string $class = ErrorHandler::class, string $method = 'handle'): self
     {
-        set_error_handler([$namespace . '\\' . $class, $handler]);
+        set_error_handler([$class, $method]);
+
+        return $this;
     }
 
     /**
      * Error handler. Throw new Eureka ErrorException
      *
-     * @param  int    $severity Severity code Error.
+     * @param  int $severity Severity code Error.
      * @param  string $message Error message.
      * @param  string $file File name for Error.
-     * @param  int    $line File line for Error.
+     * @param  int $line File line for Error.
      * @return void
      * @throws ErrorException
      */
-    public function handler($severity, $message, $file, $line)
+    public function handle(int $severity, string $message, string $file, int $line): void
     {
         throw new ErrorException($message, 0, $severity, $file, $line);
     }
@@ -59,9 +64,9 @@ class ErrorHandler
     /**
      * Restore previous Error handler.
      *
-     * @return   boolean
+     * @return bool
      */
-    public function restore()
+    public function restore(): bool
     {
         return restore_error_handler();
     }

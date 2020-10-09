@@ -9,12 +9,13 @@
 
 namespace Eureka\Kernel\Http\Middleware;
 
-use Eureka\Component\Config\Config;
 use Eureka\Kernel\Http\Controller\ControllerInterface;
-use Eureka\Psr\Http\Server\MiddlewareInterface;
-use Eureka\Psr\Http\Server\RequestHandlerInterface;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Message;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
 
 /**
  * Class ControllerMiddleware
@@ -23,34 +24,34 @@ use Psr\Http\Message;
  */
 class ControllerMiddleware implements MiddlewareInterface
 {
-    /** @var \Psr\Container\ContainerInterface $container */
-    protected $container = null;
-
-    /** @var Config config */
-    protected $config = null;
+    /** @var ContainerInterface $container */
+    protected $container;
 
     /**
-     * ExceptionMiddleware constructor.
+     * ControllerMiddleware constructor.
      *
      * @param ContainerInterface $container
-     * @param Config $config
      */
-    public function __construct(ContainerInterface $container, Config $config)
+    public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
-        $this->config    = $config;
     }
 
     /**
-     * {@inheritdoc}
+     * Process an incoming server request and return a response, optionally delegating
+     * response creation to a handler.
+     *
+     * @param ServerRequestInterface $request
+     * @param RequestHandlerInterface $handler
+     * @return ResponseInterface
      */
-    public function process(Message\ServerRequestInterface $request, RequestHandlerInterface $handler)
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if (null === $request->getAttribute('route')) {
             throw new \RuntimeException('Route not defined');
         }
 
-        $response = $this->run($request);
+        $response = $this->handle($request);
 
         $otherResponse = $handler->handle($request);
         $response->getBody()->write($otherResponse->getBody()->getContents());
@@ -61,33 +62,37 @@ class ControllerMiddleware implements MiddlewareInterface
     /**
      * Run application middleware.
      *
-     * @param  Message\ServerRequestInterface $request
-     * @return Message\ResponseInterface
+     * @param  ServerRequestInterface $request
+     * @return ResponseInterface
      */
-    private function run(Message\ServerRequestInterface $request)
+    private function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $route = $request->getAttribute('route');
+        $route = $request->getAttribute('route') ?? [];
 
-        $controller = $route->getControllerName();
-        $action     = $route->getActionName();
+        //~ Remove route from request
+        $request = $request->withoutAttribute('route');
 
-        if (!class_exists($controller)) {
-            throw new \DomainException('Controller does not exists! (controller: ' . $controller . ')');
-        }
+        list($controllerName, $action) = explode('::', $route['_controller']);
 
-        $controller = new $controller($this->container, $this->config, $route, $request);
-
-        if (!($controller instanceof ControllerInterface)) {
-            throw new \LogicException('Controller does not implement Controller Interface! (controller: ' . get_class($controller) . ')');
-        }
+        $controller = $this->container->get($controllerName);
 
         if (!method_exists($controller, $action)) {
-            throw new \DomainException('Action controller does not exists! (' . get_class($controller) . '::' . $action);
+            throw new \DomainException(
+                'Action controller does not exists! (' . get_class($controller) . '::' . $action
+            );
         }
 
-        $controller->runBefore();
-        $response = $controller->$action($request);
-        $controller->runAfter();
+        if ($controller instanceof ControllerInterface) {
+            //~ Set context action
+            $controller->setRoute($route);
+
+            //~ Call controller pre action, action & post action.
+            $controller->preAction($request);
+            $response = $controller->$action($request);
+            $controller->postAction($request);
+        } else {
+            $response = $controller->$action($request);
+        }
 
         return $response;
     }

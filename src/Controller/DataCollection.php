@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * Copyright (c) Romain Cottard
@@ -23,27 +23,27 @@ class DataCollection implements \Iterator
     protected $index = 0;
 
     /** @var array $indices Index of keys */
-    protected $indices = array();
+    protected $indices = [];
 
     /** @var array $collection Collection of data. */
-    protected $collection = array();
+    protected $collection = [];
 
     /**
      * DataCollection constructor.
      */
     public function __construct()
     {
-        $this->collection = array();
+        $this->collection = [];
     }
 
     /**
      * Add data to the collection.
      *
-     * @param  string $key
-     * @param  mixed $value
+     * @param string $key
+     * @param mixed $value
      * @return $this
      */
-    public function add($key, $value)
+    public function add($key, $value): self
     {
         $this->collection[$key]       = $value;
         $this->indices[$this->length] = $key;
@@ -57,7 +57,7 @@ class DataCollection implements \Iterator
      *
      * @return int
      */
-    public function length()
+    public function length(): int
     {
         return $this->length;
     }
@@ -77,7 +77,7 @@ class DataCollection implements \Iterator
      *
      * @return void
      */
-    public function reset()
+    public function reset(): void
     {
         $this->index = 0;
     }
@@ -97,7 +97,7 @@ class DataCollection implements \Iterator
      *
      * @return void
      */
-    public function next()
+    public function next(): void
     {
         $this->index++;
     }
@@ -107,7 +107,7 @@ class DataCollection implements \Iterator
      *
      * @return void
      */
-    public function rewind()
+    public function rewind(): void
     {
         $this->index = 0;
     }
@@ -117,7 +117,7 @@ class DataCollection implements \Iterator
      *
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         return ($this->index < $this->length);
     }
@@ -127,9 +127,9 @@ class DataCollection implements \Iterator
      *
      * @return array
      */
-    public function toArray()
+    public function toArray(): array
     {
-        $array = array();
+        $array = [];
         foreach ($this as $key => $value) {
             $array[$key] = $value;
         }

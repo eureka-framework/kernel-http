@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * Copyright (c) Romain Cottard
@@ -19,7 +19,7 @@ interface ApplicationInterface
     /**
      * Run Application
      *
-     * @return void
+     * @return ApplicationInterface
      */
-    public function run();
+    public function run(): ApplicationInterface;
 }

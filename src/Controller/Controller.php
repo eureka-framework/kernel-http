@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * Copyright (c) Romain Cottard
@@ -9,11 +9,13 @@
 
 namespace Eureka\Kernel\Http\Controller;
 
-use Eureka\Component\Config\Config;
-use Eureka\Component\Http\Message\ServerRequest;
-use Eureka\Component\Routing\RouteInterface;
+use Eureka\Kernel\Http\Traits\HttpFactoryAwareTrait;
+use Eureka\Kernel\Http\Traits\RouterAwareTrait;
+use Eureka\Kernel\Http\Traits\ServerRequestAwareTrait;
 use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface as SymfonyContainerInterface;
 
 /**
  * Controller class
@@ -22,169 +24,111 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 abstract class Controller implements ControllerInterface
 {
-    /** @var \Eureka\Component\Routing\RouteInterface $route Route object. */
-    protected $route = null;
+    use HttpFactoryAwareTrait,
+        RouterAwareTrait,
+        ServerRequestAwareTrait;
 
-    /** @var \Eureka\Kernel\Http\Controller\DataCollection $context Data collection object. */
-    protected $context = null;
+    /** @var ContainerInterface $container */
+    private $container;
 
-    /** @var \Psr\Http\Message\ServerRequestInterface $request */
-    private $request = null;
+    /** @var bool $debug */
+    private $debug = false;
 
-    /** @var \Psr\Container\ContainerInterface $container */
-    protected $container = null;
-
-    /** @var \Eureka\Component\Config\Config $config */
-    protected $config = null;
+    /** @var string $environment */
+    private $environment = 'prod';
 
     /**
-     * Class constructor
+     * This method is executed before the main controller action method.
      *
-     * @param  \Psr\Container\ContainerInterface $container
-     * @param  Config $config
-     * @param  RouteInterface $route
-     * @param  ServerRequestInterface $request
-     */
-    public function __construct(ContainerInterface $container, Config $config, RouteInterface $route, ServerRequestInterface $request = null)
-    {
-        $this->container = $container;
-        $this->config    = $config;
-        $this->route     = $route;
-        $this->request   = $request;
-
-        $this->context = new DataCollection();
-    }
-
-    /**
-     * This method is executed before the main run() method.
-     *
+     * @param null|ServerRequestInterface $request
      * @return void
      */
-    public function runBefore()
+    public function preAction(?ServerRequestInterface $request = null): void
     {
     }
 
     /**
-     * This method is executed after the main run() method.
+     * This method is executed after the main controller action method.
      *
-     *& @return void
+     * @param null|ServerRequestInterface $request
+     * @return void
      */
-    public function runAfter()
+    public function postAction(?ServerRequestInterface $request = null): void
     {
     }
 
     /**
-     * Get container
-     *
-     * @return \Psr\Container\ContainerInterface
+     * @param ContainerInterface $container
+     * @return ControllerInterface
      */
-    protected function getContainer()
+    public function setContainer(ContainerInterface $container): ControllerInterface
     {
-        return $this->container;
-    }
-
-    /**
-     * Get container
-     *
-     * @return \Eureka\Component\Config\Config
-     */
-    protected function getConfig()
-    {
-        return $this->config;
-    }
-
-    /**
-     * Get current route.
-     *
-     * @return \Eureka\Component\Routing\RouteInterface
-     */
-    protected function getCurrentRoute()
-    {
-        return $this->route;
-    }
-
-    /**
-     * Get route by name.
-     *
-     * @param  string $name
-     * @return \Eureka\Component\Routing\Route
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     * @throws \Psr\Container\ContainerExceptionInterface
-     */
-    protected function getRoute($name)
-    {
-        return $this->getContainer()->get('router')->get($name);
-    }
-
-    /**
-     * @param  string $name
-     * @return string|int
-     * @throws \Eureka\Component\Routing\Exception\ParameterException
-     */
-    protected function getParameter($name)
-    {
-        return $this->getCurrentRoute()->getParameterCollection()->getByName($name)->getValue();
-    }
-
-    /**
-     * @return ServerRequestInterface
-     */
-    protected function getRequest()
-    {
-        if (!($this->request instanceof ServerRequestInterface)) {
-            $this->request = ServerRequest::createFromGlobal();
-        }
-
-        return $this->request;
-    }
-
-    /**
-     * Add data to the data collection.
-     *
-     * @param  string $key
-     * @param  mixed $value
-     * @return static
-     */
-    protected function addContext($key, $value)
-    {
-        $this->context->add($key, $value);
+        /** @var SymfonyContainerInterface $container */
+        $this->container   = $container;
+        $this->debug       = $container->getParameter('kernel.debug');
+        $this->environment = $container->getParameter('kernel.environment');
 
         return $this;
     }
 
     /**
-     * Get data collection.
-     *
-     * @return array
+     * @return bool
      */
-    protected function getContext()
+    protected function isDebug(): bool
     {
-        return $this->context->toArray();
+        return $this->debug;
     }
 
     /**
-     * Override meta description with given description.
-     *
-     * @param  string $title
-     * @param  string $description
-     * @return $this
-     * @throws \Eureka\Component\Config\Exception\ConfigException
+     * @return bool
      */
-    protected function setMetas($title = null, $description = null)
+    protected function isDev(): bool
     {
-        $meta = $this->getConfig()->get('global.meta');
+        return $this->environment === 'dev';
+    }
 
-        if ($title !== null) {
-            $meta['title'] = strip_tags($title . ' - ' . $meta['title']);
+    /**
+     * @return bool
+     */
+    protected function isProd(): bool
+    {
+        return $this->environment === 'prod';
+    }
+
+    /**
+     * @return string
+     */
+    protected function environment(): string
+    {
+        return $this->environment;
+    }
+
+    /**
+     * @param string $content
+     * @param int $code
+     * @return ResponseInterface
+     */
+    protected function getResponse(string $content, int $code = 200): ResponseInterface
+    {
+        $response = $this->getResponseFactory()->createResponse($code);
+        $response->getBody()->write($content);
+
+        return $response;
+    }
+
+    /**
+     * @param mixed $content
+     * @param int $code
+     * @param bool $jsonEncode
+     * @return ResponseInterface
+     */
+    protected function getResponseJson($content, int $code = 200, bool $jsonEncode = true): ResponseInterface
+    {
+        if ($jsonEncode || (!is_string($content) && !is_numeric($content)) ) {
+            $content = json_encode($content);
         }
 
-        if ($description !== null) {
-            $meta['description'] = strip_tags($description);
-        }
-
-        $this->getConfig()->add('app.meta', $meta);
-
-        return $this;
+        return $this->getResponse($content, $code)->withAddedHeader('Content-Type', 'application/json');
     }
 
     /**
@@ -193,36 +137,31 @@ abstract class Controller implements ControllerInterface
      * @param  string $url
      * @param  int    $status
      * @return void
-     * @throws \Exception
      */
-    protected function redirect($url, $status = 301)
+    protected function redirect($url, $status = 301): void
     {
         $status = (int) $status;
 
         if (!empty($url)) {
+            $protocolVersion = isset($_SERVER['SERVER_PROTOCOL']) ? str_replace('HTTP/', '', $_SERVER['SERVER_PROTOCOL']) : '1.1';
 
-            header('HTTP/' . $this->getRequest()->getProtocolVersion() . ' ' . $status . ' Redirect');
+            header('HTTP/' . $protocolVersion . ' ' . $status . ' Redirect');
             header('Status: ' . $status . ' Redirect');
             header('Location: ' . $url);
             exit(0);
         } else {
-            throw new \Exception('Url is empty !');
+            throw new \InvalidArgumentException('Url is empty !');
         }
     }
 
     /**
-     * Redirect on specified route name.
-     *
-     * @param  string $routeName
-     * @param  array  $params
-     * @param  int    $status
+     * @param $routeName
+     * @param array $params
+     * @param int $status
      * @return void
-     * @throws \Psr\Container\NotFoundExceptionInterface
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Exception
      */
-    protected function redirectToRoute($routeName, $params = [], $status = 200)
+    protected function redirectToRoute($routeName, $params = [], $status = 200): void
     {
-        $this->redirect($this->getRoute($routeName)->getUri($params), $status);
+        $this->redirect($this->getRouteUri($routeName, $params), $status);
     }
 }

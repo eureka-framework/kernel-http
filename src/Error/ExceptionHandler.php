@@ -21,12 +21,11 @@ class ExceptionHandler
      *
      * @param  string $class Class Name.
      * @param  string $method Class method.
-     * @param  string $namespace Class Namespace.
-     * @return callback Previous exception handler.
+     * @return void
      */
-    public static function register($class = 'ExceptionHandler', $method = 'handler', $namespace = '\Eureka\Kernel\Http\Error')
+    public static function register(string $class = ExceptionHandler::class, string $method = 'handle'): void
     {
-        $handler = $namespace . '\\' . $class . '::' . $method;
+        $handler = $class . '::' . $method;
 
         set_exception_handler($handler);
     }
@@ -34,10 +33,10 @@ class ExceptionHandler
     /**
      * Exception handler when exception have not been caught.
      *
-     * @param  Exception $exception
+     * @param \Exception $exception
      * @return void
      */
-    public static function handler($exception)
+    public static function handle(\Exception $exception): void
     {
         echo '/!\ Uncaught exception:', PHP_EOL;
         echo '[', $exception->getCode(), ']', $exception->getMessage(), PHP_EOL;
@@ -47,9 +46,9 @@ class ExceptionHandler
     /**
      * Restore previous exception handler.
      *
-     * @return boolean
+     * @return bool
      */
-    public static function restore()
+    public static function restore(): bool
     {
         return restore_exception_handler();
     }
