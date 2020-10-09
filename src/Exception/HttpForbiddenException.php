@@ -7,13 +7,15 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Http\Error;
+declare(strict_types=1);
+
+namespace Eureka\Kernel\Http\Exception;
 
 /**
- * ErrorException class extends PHP native ErrorException class.
+ * Class HttpForbiddenException
  *
  * @author Romain Cottard
  */
-class ErrorException extends \ErrorException
+class HttpForbiddenException extends \RuntimeException
 {
 }

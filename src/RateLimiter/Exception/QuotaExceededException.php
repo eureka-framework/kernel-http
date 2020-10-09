@@ -7,13 +7,15 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Http\Middleware\Exception;
+declare(strict_types=1);
+
+namespace Eureka\Kernel\Http\RateLimiter\Exception;
 
 /**
- * Class UnauthorizedException
+ * Exception QuotaExceededException
  *
  * @author Romain Cottard
  */
-class UnauthorizedException extends HttpException
+class QuotaExceededException extends \OutOfBoundsException
 {
 }

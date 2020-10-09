@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /*
  * Copyright (c) Romain Cottard
@@ -6,6 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+declare(strict_types=1);
 
 namespace Eureka\Kernel\Http\Traits;
 
@@ -19,10 +21,10 @@ use Symfony\Component\Routing\Router;
 trait RouterAwareTrait
 {
     /** @var Router $router */
-    protected $router;
+    protected Router $router;
 
     /** @var array $route */
-    protected $route = [];
+    protected array $route = [];
 
     /**
      * @param Router $router

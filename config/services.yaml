@@ -1,0 +1,54 @@
+# Services Yaml file
+parameters:
+
+    app.name: 'kernel'
+    app.middleware:
+        logger:         'Eureka\Kernel\Http\Middleware\ResponseTimeLoggerMiddleware'
+        error:          'Eureka\Kernel\Http\Middleware\ErrorMiddleware'
+        router:         'Eureka\Kernel\Http\Middleware\RouterMiddleware'
+        quota:          'Eureka\Kernel\Http\Middleware\RateLimiterMiddleware'
+        controller:     'Eureka\Kernel\Http\Middleware\ControllerMiddleware'
+
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: true
+        bind:
+            $applicationName: '%app.name%'
+            $logger: '@Psr\Log\NullLogger'
+            $cache: '@Psr\Cache\CacheItemPoolInterface'
+
+    #~ Middleware
+    Eureka\Kernel\Http\Middleware\:
+        resource: '../src/Middleware/*'
+
+    #~ Middleware
+    Eureka\Kernel\Http\Service\:
+        resource: '../src/Service/*'
+
+    #~ Application controllers
+    Eureka\Kernel\Http\Tests\Mock\TestController:
+        calls:
+            - ['setLogger', ['@Psr\Log\NullLogger']]
+            - ['setRouter', ['@router']]
+            - ['setResponseFactory', ['@response_factory']]
+            - ['setRequestFactory', ['@request_factory']]
+            - ['setServerRequestFactory', ['@server_request_factory']]
+            - ['setStreamFactory', ['@stream_factory']]
+            - ['setUriFactory', ['@uri_factory']]
+
+    #~ Application controllers
+    Eureka\Kernel\Http\Controller\:
+        resource: '../src/Controller/*'
+        calls:
+            - ['setRouter', ['@router']]
+            - ['setResponseFactory', ['@response_factory']]
+            - ['setRequestFactory', ['@request_factory']]
+            - ['setServerRequestFactory', ['@server_request_factory']]
+            - ['setStreamFactory', ['@stream_factory']]
+            - ['setUriFactory', ['@uri_factory']]
+
+

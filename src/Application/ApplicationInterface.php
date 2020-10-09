@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /*
  * Copyright (c) Romain Cottard
@@ -7,7 +7,12 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Eureka\Kernel\Http\Application;
+
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Application interface
@@ -17,9 +22,16 @@ namespace Eureka\Kernel\Http\Application;
 interface ApplicationInterface
 {
     /**
-     * Run Application
+     * @param ServerRequestInterface|null $serverRequest
+     * @return ResponseInterface
+     */
+    public function run(ServerRequestInterface $serverRequest = null): ResponseInterface;
+
+    /**
+     * Send response to client
      *
+     * @param ResponseInterface $response
      * @return ApplicationInterface
      */
-    public function run(): ApplicationInterface;
+    public function send(ResponseInterface $response): ApplicationInterface;
 }

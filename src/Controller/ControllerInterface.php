@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /*
  * Copyright (c) Romain Cottard
@@ -7,9 +7,10 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Eureka\Kernel\Http\Controller;
 
-use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -20,14 +21,6 @@ use Psr\Http\Message\ServerRequestInterface;
 interface ControllerInterface
 {
     /**
-     * @param ContainerInterface $container
-     * @return ControllerInterface
-     */
-    public function setContainer(ContainerInterface $container): self;
-
-    /**
-     * Set route parameters.
-     *
      * @param array $route
      * @return void
      */

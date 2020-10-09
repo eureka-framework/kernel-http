@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /*
  * Copyright (c) Romain Cottard
@@ -6,6 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+declare(strict_types=1);
 
 namespace Eureka\Kernel\Http\Traits;
 
@@ -23,19 +25,19 @@ use Psr\Http\Message\UriFactoryInterface;
 trait HttpFactoryAwareTrait
 {
     /** @var UriFactoryInterface */
-    private $uriFactory;
+    private UriFactoryInterface $uriFactory;
 
     /** @var RequestFactoryInterface */
-    private $requestFactory;
+    private RequestFactoryInterface $requestFactory;
 
     /** @var ServerRequestFactoryInterface */
-    private $serverRequestFactory;
+    private ServerRequestFactoryInterface $serverRequestFactory;
 
     /** @var ResponseFactoryInterface */
-    private $responseFactory;
+    private ResponseFactoryInterface $responseFactory;
 
     /** @var StreamFactoryInterface */
-    private $streamFactory;
+    private StreamFactoryInterface $streamFactory;
 
     /**
      * @return UriFactoryInterface

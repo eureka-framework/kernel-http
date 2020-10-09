@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /*
  * Copyright (c) Romain Cottard
@@ -7,9 +7,11 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Eureka\Kernel\Http\Traits;
 
-use Eureka\Component\Http\QueryParameters;
+use Eureka\Kernel\Http\Service\DataCollection;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -20,7 +22,7 @@ use Psr\Http\Message\ServerRequestInterface;
 trait ServerRequestAwareTrait
 {
     /** @var ServerRequestInterface $serverRequest */
-    protected $serverRequest;
+    protected ServerRequestInterface $serverRequest;
 
     /**
      * @param ServerRequestInterface $serverRequest
@@ -40,19 +42,19 @@ trait ServerRequestAwareTrait
     }
 
     /**
-     * @return QueryParameters
+     * @return DataCollection
      */
-    protected function getQueryParameters(): QueryParameters
+    protected function getQueryParameters(): DataCollection
     {
-        return new QueryParameters($this->serverRequest->getQueryParams());
+        return new DataCollection($this->serverRequest->getQueryParams());
     }
 
     /**
-     * @return QueryParameters
+     * @return DataCollection
      */
-    protected function getBodyParameters(): QueryParameters
+    protected function getBodyParameters(): DataCollection
     {
-        return new QueryParameters((array) $this->serverRequest->getParsedBody());
+        return new DataCollection((array) $this->serverRequest->getParsedBody());
     }
 
     /**
@@ -119,5 +121,17 @@ trait ServerRequestAwareTrait
         }
 
         return (strtolower($this->serverRequest->getHeaderLine('Content-Type')) === 'application/json');
+    }
+
+    /**
+     * @return bool
+     */
+    protected function acceptJsonResponse(): bool
+    {
+        if (!$this->serverRequest->hasHeader('Accept')) {
+            return false;
+        }
+
+        return (strtolower($this->serverRequest->getHeaderLine('Accept')) === 'application/json');
     }
 }

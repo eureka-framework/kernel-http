@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /*
  * Copyright (c) Romain Cottard
@@ -7,7 +7,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Http\Controller;
+declare(strict_types=1);
+
+namespace Eureka\Kernel\Http\Service;
 
 /**
  * Data Collection class.
@@ -16,24 +18,32 @@ namespace Eureka\Kernel\Http\Controller;
  */
 class DataCollection implements \Iterator
 {
-    /** @var integer $length Length of the collection */
-    protected $length = 0;
+    /** @var int $length Length of the collection */
+    protected int $length = 0;
 
-    /** @var integer Current position of the cursor in collection. */
-    protected $index = 0;
+    /** @var int Current position of the cursor in collection. */
+    protected int $index = 0;
 
     /** @var array $indices Index of keys */
-    protected $indices = [];
+    protected array $indices = [];
 
     /** @var array $collection Collection of data. */
-    protected $collection = [];
+    protected array $collection = [];
 
     /**
      * DataCollection constructor.
+     *
+     * @param array $data
      */
-    public function __construct()
+    public function __construct(array $data = [])
     {
         $this->collection = [];
+
+        if (!empty($data)) {
+            foreach ($data as $key => $value) {
+                $this->add((string) $key, $value);
+            }
+        }
     }
 
     /**
@@ -43,7 +53,7 @@ class DataCollection implements \Iterator
      * @param mixed $value
      * @return $this
      */
-    public function add($key, $value): self
+    public function add(string $key, $value): self
     {
         $this->collection[$key]       = $value;
         $this->indices[$this->length] = $key;

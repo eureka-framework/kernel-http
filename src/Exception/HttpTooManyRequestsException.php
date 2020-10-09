@@ -7,13 +7,15 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Http\Error;
+declare(strict_types=1);
+
+namespace Eureka\Kernel\Http\Exception;
 
 /**
- * Class to handle exception
+ * Class HttpTooManyRequestsException
  *
  * @author Romain Cottard
  */
-class ExceptionNoData extends \Exception
+class HttpTooManyRequestsException extends \RuntimeException
 {
 }

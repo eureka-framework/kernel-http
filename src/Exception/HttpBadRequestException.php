@@ -7,13 +7,15 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Http\Middleware\Exception;
+declare(strict_types=1);
+
+namespace Eureka\Kernel\Http\Exception;
 
 /**
- * Class RouteNotFoundException
+ * Class BadRequestException
  *
  * @author Romain Cottard
  */
-class RouteNotFoundException extends \Exception
+class HttpBadRequestException extends \RuntimeException
 {
 }

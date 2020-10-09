@@ -7,13 +7,15 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Http\Middleware\Exception;
+declare(strict_types=1);
+
+namespace Eureka\Kernel\Http\Exception;
 
 /**
- * Class ForbiddenException
+ * Class HttpInternalServerErrorException
  *
  * @author Romain Cottard
  */
-class ForbiddenException extends HttpException
+class HttpInternalServerErrorException extends \RuntimeException
 {
 }

@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /*
  * Copyright (c) Romain Cottard
@@ -7,9 +7,11 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Eureka\Kernel\Http\Traits;
 
-use Eureka\Component\Http\Session\Session;
+use Eureka\Kernel\Http\Service\Session;
 
 /**
  * Trait SessionAwareTrait
@@ -19,7 +21,7 @@ use Eureka\Component\Http\Session\Session;
 trait SessionAwareTrait
 {
     /** @var Session session */
-    protected $session;
+    protected Session $session;
 
     /**
      * @param Session $session
@@ -31,7 +33,7 @@ trait SessionAwareTrait
     }
 
     /**
-     * @return SessionBagInterface
+     * @return Session
      */
     protected function getSession(): Session
     {

@@ -7,15 +7,17 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Eureka\Kernel\Http\Middleware;
 
 use Eureka\Kernel\Http\Controller\ControllerInterface;
+use Eureka\Kernel\Http\Exception\HttpNotFoundException;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-
 
 /**
  * Class ControllerMiddleware
@@ -25,7 +27,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 class ControllerMiddleware implements MiddlewareInterface
 {
     /** @var ContainerInterface $container */
-    protected $container;
+    protected ContainerInterface $container;
 
     /**
      * ControllerMiddleware constructor.
@@ -48,7 +50,7 @@ class ControllerMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if (null === $request->getAttribute('route')) {
-            throw new \RuntimeException('Route not defined');
+            throw new HttpNotFoundException('Route not defined'); // @codeCoverageIgnore
         }
 
         $response = $this->handle($request);
@@ -72,7 +74,7 @@ class ControllerMiddleware implements MiddlewareInterface
         //~ Remove route from request
         $request = $request->withoutAttribute('route');
 
-        list($controllerName, $action) = explode('::', $route['_controller']);
+        [$controllerName, $action] = explode('::', $route['_controller']);
 
         $controller = $this->container->get($controllerName);
 
@@ -91,7 +93,7 @@ class ControllerMiddleware implements MiddlewareInterface
             $response = $controller->$action($request);
             $controller->postAction($request);
         } else {
-            $response = $controller->$action($request);
+            $response = $controller->$action($request); // @codeCoverageIgnore
         }
 
         return $response;

@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /*
  * Copyright (c) Romain Cottard
@@ -6,6 +6,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+declare(strict_types=1);
 
 namespace Eureka\Kernel\Http;
 
@@ -24,28 +26,33 @@ use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
+/**
+ * Class Kernel
+ *
+ * @author Romain Cottard
+ */
 class Kernel
 {
     /** @var string CONFIG_EXTENSIONS */
     private const CONFIG_EXTENSIONS = '.{php,xml,yaml,yml}';
 
-    /** @var ContainerBuilder $container */
+    /** @var ContainerBuilder|ContainerInterface $container */
     private $container;
 
     /** @var string $rootDirectory Root directory */
-    private $rootDirectory = '';
+    private string $rootDirectory;
 
     /** @var string $environment Environment */
-    private $environment = 'dev';
+    private string $environment;
 
     /** @var bool $debug Debug */
-    private $debug = false;
+    private bool $debug;
 
     /** @var string $name */
-    protected $name = 'src';
+    protected string $name = 'src';
 
     /** @var string $varDirectory */
-    protected $varDirectory = '';
+    protected string $varDirectory = '';
 
     /**
      * Kernel constructor.
@@ -91,6 +98,7 @@ class Kernel
         if (!$containerConfigCache->isFresh()) {
             $this->container = new ContainerBuilder();
             $this->loadConfig();
+            $this->registerCompilerPasses();
             $this->dumpContainer();
         }
 
@@ -149,6 +157,28 @@ class Kernel
     }
 
     /**
+     * Register user-defined compiler pass to the container
+     *
+     * @return $this
+     */
+    protected function registerCompilerPasses(): self
+    {
+        if (!$this->container->hasParameter('kernel.compiler_pass')) {
+            return $this; // @codeCoverageIgnore
+        }
+
+        $compilerPasses = $this->container->getParameter('kernel.compiler_pass');
+        foreach ($compilerPasses as $compilerPass) {
+            if (!class_exists($compilerPass)) {
+                continue;
+            }
+            $this->container->addCompilerPass(new $compilerPass()); // @codeCoverageIgnore
+        }
+
+        return $this;
+    }
+
+    /**
      * Dump container in cache files if necessary.
      *
      * @return void
@@ -159,7 +189,6 @@ class Kernel
         $containerConfigCache = new ConfigCache($file, $this->debug);
 
         if (!$containerConfigCache->isFresh()) {
-
             $this->container->compile();
 
             $dumper = new PhpDumper($this->container);
@@ -254,7 +283,7 @@ class Kernel
                     throw new \RuntimeException(sprintf("Unable to create the %s directory (%s)\n", $name, $dir));
                 }
             } elseif (!is_writable($dir)) {
-                throw new \RuntimeException(sprintf("Unable to write in the %s directory (%s)\n", $name, $dir));
+                throw new \RuntimeException(sprintf("Unable to write in the %s directory (%s)\n", $name, $dir)); // @codeCoverageIgnore
             }
         }
 

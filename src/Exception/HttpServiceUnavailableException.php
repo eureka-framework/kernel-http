@@ -7,13 +7,15 @@
  * file that was distributed with this source code.
  */
 
-namespace Eureka\Kernel\Http\Middleware\Exception;
+declare(strict_types=1);
+
+namespace Eureka\Kernel\Http\Exception;
 
 /**
- * Class HttpException
+ * Class HttpServiceUnavailableException
  *
  * @author Romain Cottard
  */
-class HttpException extends \Exception
+class HttpServiceUnavailableException extends \RuntimeException
 {
 }

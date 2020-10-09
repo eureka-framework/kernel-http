@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /*
  * Copyright (c) Romain Cottard
@@ -7,69 +7,75 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace Eureka\Kernel\Http\Controller;
 
-use Eureka\Component\Http\HttpFactory;
-use Eureka\Kernel\Http\Middleware\Exception\RouteNotFoundException;
-use Eureka\Kernel\Http\Middleware\Exception\UnauthorizedException;
+use Eureka\Kernel\Http\Exception\HttpBadRequestException;
+use Eureka\Kernel\Http\Exception\HttpConflictException;
+use Eureka\Kernel\Http\Exception\HttpForbiddenException;
+use Eureka\Kernel\Http\Exception\HttpMethodNotAllowedException;
+use Eureka\Kernel\Http\Exception\HttpNotFoundException;
+use Eureka\Kernel\Http\Exception\HttpServiceUnavailableException;
+use Eureka\Kernel\Http\Exception\HttpTooManyRequestsException;
+use Eureka\Kernel\Http\Exception\HttpUnauthorizedException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Safe\Exceptions\JsonException;
+
+use function Safe\json_encode;
 
 /**
  * Controller class
  *
  * @author Romain Cottard
  */
-class ErrorController extends Controller
+class ErrorController extends Controller implements ErrorControllerInterface
 {
     /**
-     * ErrorController constructor.
-     *
-     * @param ContainerInterface $container
-     */
-    public function __construct(ContainerInterface $container)
-    {
-        $this->setContainer($container);
-    }
-
-    /**
-     * @param ServerRequestInterface|null $request
-     * @return void
-     */
-    public function preAction(?ServerRequestInterface $request = null): void
-    {
-        $httpFactory = new HttpFactory();
-        $this->setRequestFactory($httpFactory);
-        $this->setServerRequestFactory($httpFactory);
-        $this->setResponseFactory($httpFactory);
-        $this->setStreamFactory($httpFactory);
-        $this->setUriFactory($httpFactory);
-        $this->setServerRequest($request);
-    }
-
-    /**
-     * @param ServerRequestInterface $request
+     * @param ServerRequestInterface $serverRequest
      * @param \Exception $exception
      * @return ResponseInterface
+     * @throws
      */
-    public function errorAction(ServerRequestInterface $request, \Exception $exception): ResponseInterface
+    public function error(ServerRequestInterface $serverRequest, \Exception $exception): ResponseInterface
     {
-        $code = 500;
-
-        if ($exception instanceof RouteNotFoundException) {
-            $code = 404;
-        } elseif ($exception instanceof UnauthorizedException) {
-            $code = 403;
+        switch (true) {
+            case $exception instanceof HttpBadRequestException:
+                $httpCode = 400;
+                break;
+            case $exception instanceof HttpUnauthorizedException:
+                $httpCode = 401;
+                break;
+            case $exception instanceof HttpForbiddenException:
+                $httpCode = 403;
+                break;
+            case $exception instanceof HttpNotFoundException:
+                $httpCode = 404;
+                break;
+            case $exception instanceof HttpMethodNotAllowedException:
+                $httpCode = 405;
+                break;
+            case $exception instanceof HttpConflictException:
+                $httpCode = 409;
+                break;
+            case $exception instanceof HttpTooManyRequestsException:
+                $httpCode = 429;
+                break;
+            case $exception instanceof HttpServiceUnavailableException:
+                $httpCode = 503;
+                break;
+            default:
+                $httpCode = 500;
         }
 
-        if ($this->isAjax($request)) {
-            $content = $this->getErrorContentJson($exception);
+        if ($this->acceptJsonResponse()) {
+            $content = $this->getErrorContentJson($httpCode, $exception); // @codeCoverageIgnore
         } else {
-            $content = $this->getErrorContentHtml($request, $exception);
+            $content = $this->getErrorContentHtml($serverRequest, $exception);
         }
 
-        return $this->getResponse($content, $code);
+        return $this->getResponse($content, $httpCode);
     }
 
     /**
@@ -87,19 +93,31 @@ class ErrorController extends Controller
     }
 
     /**
+     * @param int $code
      * @param \Exception $exception
-     * @return false|string
+     * @return string
+     * @codeCoverageIgnore
      */
-    protected function getErrorContentJson(\Exception $exception)
+    protected function getErrorContentJson(int $code, \Exception $exception)
     {
-        //~ Ajax response error
-        $content          = new \stdClass();
-        $content->message = $exception->getMessage();
-        $content->code    = $exception->getCode();
-        $content->trace   = ($this->isDebug() ? $exception->getTraceAsString() : '');
+        //~ Ajax response error - JsonApi.org error object format + trace
+        $error = [
+            'status' => (string) $code,
+            'title'  => self::HTTP_CODE_MESSAGES[$code] ?? 'Unknown',
+            'code'   => !empty($exception->getCode()) ? (string) $exception->getCode() : '99',
+            'detail' => !empty($exception->getMessage()) ? $exception->getMessage() : 'Undefined message',
+        ];
 
-        $content = json_encode($content);
+        if ($this->isDebug()) {
+            $error['trace'] = $exception->getTraceAsString();
+        }
 
-        return $content !== false ? $content : '';
+        try {
+            $content = json_encode($error);
+        } catch (JsonException $exception) {
+            $content = 'json_encode error (' . $exception->getMessage() . ')';
+        }
+
+        return $content;
     }
 }
