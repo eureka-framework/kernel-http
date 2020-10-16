@@ -38,8 +38,6 @@ use Symfony\Component\Routing\RouterInterface;
  */
 class TestController extends Controller
 {
-    use SessionAwareTrait;
-
     /**
      * @return ResponseInterface
      */
@@ -166,20 +164,6 @@ class TestController extends Controller
 
         if ($this->getParameter('test', 'default') !== 'default') {
             throw new \RuntimeException('Getting parameter test must return "default" as default value!');
-        }
-
-        return true;
-    }
-
-    /**
-     * @return bool
-     */
-    public function assertHasSessionHelperAvailable(): bool
-    {
-        $this->setSession(new Session());
-
-        if (!($this->getSession() instanceof Session)) {
-            throw new \RuntimeException('Session not available!');
         }
 
         return true;

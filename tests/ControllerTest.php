@@ -70,17 +70,6 @@ class ControllerTest extends TestCase
      * @return void
      * @throws \Exception
      */
-    public function testControllerHasSessionHelperAvailable(): void
-    {
-        $controller = $this->getTestController();
-
-        $this->assertTrue($controller->assertHasSessionHelperAvailable());
-    }
-
-    /**
-     * @return void
-     * @throws \Exception
-     */
     public function testControllerHasServerRequestHelperAvailable(): void
     {
         $controller = $this->getTestController();
