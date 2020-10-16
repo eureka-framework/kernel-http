@@ -2,9 +2,9 @@
 
 [![Current version](https://img.shields.io/packagist/v/eureka/kernel-http.svg?logo=composer)](https://packagist.org/packages/eureka/kernel-http)
 [![Supported PHP version](https://img.shields.io/static/v1?logo=php&label=PHP&message=%5E7.4&color=777bb4)](https://packagist.org/packages/eureka/kernel-http)
-[![codecov](https://codecov.io/gh/eureka-framework/kernel-http/branch/master/graph/badge.svg)](https://codecov.io/gh/eureka-framework/kernel-http)
-[![Build Status](https://travis-ci.org/eureka-framework/kernel-http.svg?branch=master)](https://travis-ci.org/eureka-framework/kernel-http)
-![CI](https://github.com/eureka-framework/kernel-http/workflows/CI/badge.svg)
+![Build](https://github.com/eureka-framework/kernel-http/workflows/CI/badge.svg)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=eureka-framework_kernel-http&metric=alert_status)](https://sonarcloud.io/dashboard?id=eureka-framework_kernel-http)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=eureka-framework_kernel-http&metric=coverage)](https://sonarcloud.io/dashboard?id=eureka-framework_kernel-http)
 
 Kernel Http for any Eureka Framework application.
 
