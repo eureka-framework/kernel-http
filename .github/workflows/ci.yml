@@ -34,12 +34,12 @@ jobs:
         run: make phpcs
 
       - name: Units Tests
-        run: make tests
+        run: |
+          make tests
+          sed -i 's+/home/runner/work/kernel-http/kernel-http+/github/workspace+g' build/reports/phpunit/clover.xml
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v1.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          projectBaseDir: /home/runner/work/kernel-http/kernel-http
