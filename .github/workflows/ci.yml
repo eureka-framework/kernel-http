@@ -36,5 +36,5 @@ jobs:
       - name: Units Tests
         run: make tests
 
-      - name: Unit Tests (with --testdox)
-        run: make testdox
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v1.4
