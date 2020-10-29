@@ -6,18 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 
-## [5.0.0] - 2020-10-09
+## [5.0.0] - 2020-10-29
 ### Changed:
  * Require php 7.4+
  * Improve code & testability
-
+ * Upgrade phpcodesniffer to v0.7 for composer 2.0
 ### Added
  * Tests
  * Configs for tests
  * New exceptions
  * New helpers: Session, DataCollection & IpResolver
  * New RateLimiter middleware
- 
 ### Removed
  * Old exceptions
  * Old unused error handler
