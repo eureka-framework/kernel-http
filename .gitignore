@@ -3,6 +3,9 @@ composer.phar
 composer.lock
 /vendor/
 
+#~ Symfony
+var/
+
 #~ CI
 /build/
 .phpunit.result.cache
