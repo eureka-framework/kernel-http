@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [5.0.1] - 2020-11-05
+### Changed:
+ * Better loading for yaml file (now search for sub directory /{env}/ & /secrets/)
+ * Require dependency thecodingmachine/safe 1.3
 
 ## [5.0.0] - 2020-10-29
 ### Changed:
@@ -29,7 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  * Use official PSR-15
  * New default ErrorController
  * Use original PSR-15 middleware
- * Now use Symfony/DepencencyInjection, Symfony/Config & Symfony/Routing
+ * Now use Symfony/DependencyInjection, Symfony/Config & Symfony/Routing
 
 ### Changed
  * Require php 7.2+
