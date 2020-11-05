@@ -139,17 +139,23 @@ class Kernel
 
         //~ Load kernel config files
         $loader->load($this->getConfigDir() . '/{kernel}' . self::CONFIG_EXTENSIONS, 'glob');
-        $loader->load($this->getConfigDir() . '/{kernel}_' . $this->environment . self::CONFIG_EXTENSIONS, 'glob');
+        $loader->load($this->getConfigDir() . '/{kernel}_' . $this->environment . self::CONFIG_EXTENSIONS, 'glob'); // @deprecated
 
         //~ Load packages config files
         $loader->load($this->getConfigDir() . '/{packages}/*' . self::CONFIG_EXTENSIONS, 'glob');
-        $loader->load($this->getConfigDir() . '/{packages}/' . $this->environment . '/**/*' . self::CONFIG_EXTENSIONS, 'glob');
         $loader->load($this->getConfigDir() . '/{packages}/**/*' . self::CONFIG_EXTENSIONS, 'glob');
 
+        //~ Load specific env config files
+        $loader->load($this->getConfigDir() . '/' . $this->environment . '/*' . self::CONFIG_EXTENSIONS, 'glob');
+        $loader->load($this->getConfigDir() . '/' . $this->environment . '/**/*' . self::CONFIG_EXTENSIONS, 'glob');
 
         //~ Load services config files
         $loader->load($this->getConfigDir() . '/{services}' . self::CONFIG_EXTENSIONS, 'glob');
-        $loader->load($this->getConfigDir() . '/{services}_' . $this->environment . self::CONFIG_EXTENSIONS, 'glob');
+        $loader->load($this->getConfigDir() . '/{services}_' . $this->environment . self::CONFIG_EXTENSIONS, 'glob'); // @deprecated
+
+        //~ Load secrets config files
+        $loader->load($this->getConfigDir() . '/{secrets}/*' . self::CONFIG_EXTENSIONS, 'glob');
+        $loader->load($this->getConfigDir() . '/{secrets}/**/*' . self::CONFIG_EXTENSIONS, 'glob');
 
         $this->container->setParameter('kernel.directory.root', $this->rootDirectory);
 
