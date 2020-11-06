@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [5.0.2] - 2020-11-06
+### Changed:
+ * Re-add  the missing "secrets/" directory in loaded config
+ 
 ## [5.0.1] - 2020-11-05
 ### Changed:
  * Better loading for yaml file (now search for sub directory /{env}/ & /secrets/)
