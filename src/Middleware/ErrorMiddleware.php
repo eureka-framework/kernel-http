@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Eureka\Kernel\Http\Middleware;
 
 use Eureka\Kernel\Http\Controller\ErrorControllerInterface;
+use Eureka\Kernel\Http\Exception\HttpInternalServerErrorException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -50,7 +51,7 @@ class ErrorMiddleware implements MiddlewareInterface
     {
         try {
             $response = $handler->handle($serverRequest);
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             $response = $this->getErrorResponse($serverRequest, $exception);
         }
 
@@ -61,12 +62,16 @@ class ErrorMiddleware implements MiddlewareInterface
      * Get Error response.
      *
      * @param ServerRequestInterface $serverRequest
-     * @param \Exception $exception
+     * @param \Throwable $exception
      * @return ResponseInterface
      * @throws
      */
-    private function getErrorResponse(ServerRequestInterface $serverRequest, \Exception $exception): ResponseInterface
+    private function getErrorResponse(ServerRequestInterface $serverRequest, \Throwable $exception): ResponseInterface
     {
+        if ($exception instanceof \Error) {
+            $exception = new HttpInternalServerErrorException($exception->getMessage(), $exception->getCode(), $exception);
+        }
+
         $this->controller->preAction($serverRequest);
         $response = $this->controller->error($serverRequest, $exception);
         $this->controller->postAction();

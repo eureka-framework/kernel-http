@@ -49,9 +49,14 @@ test_error_html_service_unavailable:
     methods:    [GET]
 
 test_error_html_conflict:
-    path: /test/error/html/conflict
+    path:       /test/error/html/conflict
     controller: Eureka\Kernel\Http\Tests\Mock\TestController::testConflictErrorHtmlAction
-    methods: [ GET ]
+    methods:    [ GET ]
+
+test_error_type:
+    path:       /test/error/html/error
+    controller: Eureka\Kernel\Http\Tests\Mock\TestController::testErrorTypeHtmlAction
+    methods:    [ GET ]
 
 test_error_action_not_exists:
     path:       /test/error/action-not-exists

@@ -103,6 +103,14 @@ class TestController extends Controller
     }
 
     /**
+     * @return ResponseInterface
+     */
+    public function testErrorTypeHtmlAction(): ResponseInterface
+    {
+        throw new \Error('throw an error (html)', 99);
+    }
+
+    /**
      * @return bool
      */
     public function assertHasAllFactories(): bool

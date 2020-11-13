@@ -5,17 +5,22 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [5.1.0] - 2020-11-13
+### Added
+ * ErrorMiddleware now handle all \Throwable & transform \Error into HttpInternalServerError for error controller.
+ * Add a header no cache for redirection.
+
 ## [5.0.2] - 2020-11-06
-### Changed:
+### Changed
  * Re-add  the missing "secrets/" directory in loaded config
  
 ## [5.0.1] - 2020-11-05
-### Changed:
+### Changed
  * Better loading for yaml file (now search for sub directory /{env}/ & /secrets/)
  * Require dependency thecodingmachine/safe 1.3
 
 ## [5.0.0] - 2020-10-29
-### Changed:
+### Changed
  * Require php 7.4+
  * Improve code & testability
  * Upgrade phpcodesniffer to v0.7 for composer 2.0

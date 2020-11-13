@@ -231,6 +231,10 @@ class ApplicationTest extends TestCase
                 '/test/error/html/conflict',
                 HttpConflictException::class,
             ],
+            'Error' => [
+                '/test/error/html/error',
+                HttpInternalServerErrorException::class,
+            ],
         ];
     }
 }

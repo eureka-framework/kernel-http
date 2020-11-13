@@ -217,6 +217,7 @@ abstract class Controller implements ControllerInterface
             header('HTTP/' . $protocolVersion . ' ' . $status . ' Redirect');
             header('Status: ' . $status . ' Redirect');
             header('Location: ' . $url);
+            header('Pragma: no-cache');
             exit(0);
         } else {
             throw new \InvalidArgumentException('Url is empty !');

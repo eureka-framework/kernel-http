@@ -36,7 +36,6 @@ class ErrorController extends Controller implements ErrorControllerInterface
      * @param ServerRequestInterface $serverRequest
      * @param \Exception $exception
      * @return ResponseInterface
-     * @throws
      */
     public function error(ServerRequestInterface $serverRequest, \Exception $exception): ResponseInterface
     {

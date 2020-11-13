@@ -26,6 +26,7 @@ interface ErrorControllerInterface extends ControllerInterface
      * @param ServerRequestInterface $request
      * @param \Exception $exception
      * @return ResponseInterface
+     * @todo 6.0.0: Handle \Throwable here
      */
     public function error(ServerRequestInterface $request, \Exception $exception): ResponseInterface;
 }
