@@ -28,13 +28,13 @@ class DataCollection implements \Iterator
     /** @var array<int, string> $indices Index of keys */
     protected array $indices = [];
 
-    /** @var array<string, string|int|float|bool|null> $collection Collection of data. */
+    /** @var array<string,mixed> $collection Collection of data. */
     protected array $collection = [];
 
     /**
      * DataCollection constructor.
      *
-     * @param array<string, string|int|float|bool|null> $data
+     * @param array<string,mixed> $data
      */
     public function __construct(array $data = [])
     {
@@ -51,7 +51,7 @@ class DataCollection implements \Iterator
      * Add data to the collection.
      *
      * @param string $key
-     * @param string|int|float|bool|null $value
+     * @param mixed $value
      * @return $this
      */
     public function add(string $key, $value): self
@@ -76,7 +76,7 @@ class DataCollection implements \Iterator
     /**
      * Get current data
      *
-     * @return string|int|float|bool|null
+     * @return mixed
      */
     #[\ReturnTypeWillChange]
     public function current()
@@ -137,7 +137,7 @@ class DataCollection implements \Iterator
     /**
      * Convert to array
      *
-     * @return array<string, string|int|float|bool|null>
+     * @return array<string,mixed>
      */
     public function toArray(): array
     {
