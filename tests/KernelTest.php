@@ -28,7 +28,7 @@ class KernelTest extends TestCase
      */
     public function testCanInstantiateKernel(): void
     {
-        $root  = realpath(__DIR__ . '/..');
+        $root  = (string) realpath(__DIR__ . '/..');
         $env   = 'dev';
         $debug = true;
 
@@ -43,7 +43,7 @@ class KernelTest extends TestCase
      */
     public function testCanGetContainer(): void
     {
-        $root  = realpath(__DIR__ . '/..');
+        $root  = (string) realpath(__DIR__ . '/..');
         $env   = 'dev';
         $debug = true;
 

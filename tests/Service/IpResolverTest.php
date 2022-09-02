@@ -58,7 +58,7 @@ class IpResolverTest extends TestCase
      */
     public function testIGetEmptyIpFromUtilsWithExcludedPrivateIpWhenUseMyPrivateIp(): void
     {
-        $serverRequest = $this->getServerRequest('172.16.1.2');
+        $serverRequest = $this->getServerRequest('172.16.1.3');
 
         $this->assertEmpty((new IpResolver())->resolve($serverRequest, true));
     }

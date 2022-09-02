@@ -20,7 +20,6 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 class IpResolver
 {
-    /** @var array IP_INDICES_TO_CHECK */
     private const IP_INDICES_TO_CHECK = [
         'HTTP_CLIENT_IP',           // Shared internet/ISP IP
         'HTTP_X_FORWARDED_FOR',     // IPs passing through proxies

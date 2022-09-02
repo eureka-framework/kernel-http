@@ -96,10 +96,7 @@ abstract class Controller implements ControllerInterface
     ];
 
 
-    /** @var bool $debug */
     private bool $debug = false;
-
-    /** @var string $environment */
     private string $environment = 'prod';
 
     /**
@@ -118,7 +115,7 @@ abstract class Controller implements ControllerInterface
     /**
      * This method is executed before the main controller action method.
      *
-     * @param null|ServerRequestInterface $serverRequest
+     * @param ServerRequestInterface|null $serverRequest
      * @return void
      */
     public function preAction(?ServerRequestInterface $serverRequest = null): void
@@ -132,7 +129,7 @@ abstract class Controller implements ControllerInterface
     /**
      * This method is executed after the main controller action method.
      *
-     * @param null|ServerRequestInterface $serverRequest
+     * @param ServerRequestInterface|null $serverRequest
      * @return void
      */
     public function postAction(?ServerRequestInterface $serverRequest = null): void
@@ -185,7 +182,7 @@ abstract class Controller implements ControllerInterface
     }
 
     /**
-     * @param mixed $content
+     * @param \stdClass|string|int|float|array<string|int|float|bool> $content
      * @param int $code
      * @param bool $jsonEncode
      * @return ResponseInterface
@@ -196,7 +193,7 @@ abstract class Controller implements ControllerInterface
             $content = json_encode($content);
         }
 
-        return $this->getResponse($content, $code)->withAddedHeader('Content-Type', 'application/json');
+        return $this->getResponse((string) $content, $code)->withAddedHeader('Content-Type', 'application/json');
     }
 
     /**
@@ -207,7 +204,7 @@ abstract class Controller implements ControllerInterface
      * @return void
      * @codeCoverageIgnore
      */
-    protected function redirect(string $url, $status = 301): void
+    protected function redirect(string $url, int $status = 301): void
     {
         $status = (int) $status;
 
@@ -225,13 +222,13 @@ abstract class Controller implements ControllerInterface
     }
 
     /**
-     * @param $routeName
-     * @param array $params
+     * @param string $routeName
+     * @param array<string, string|int|bool|float|bool|null> $params
      * @param int $status
      * @return void
      * @codeCoverageIgnore
      */
-    protected function redirectToRoute($routeName, $params = [], $status = 200): void
+    protected function redirectToRoute(string $routeName, array $params = [], int $status = 200): void
     {
         $this->redirect($this->getRouteUri($routeName, $params), $status);
     }

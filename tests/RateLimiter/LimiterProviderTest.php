@@ -15,8 +15,6 @@ use Eureka\Kernel\Http\RateLimiter\Counter\CacheCounter;
 use Eureka\Kernel\Http\RateLimiter\Exception\QuotaExceededException;
 use Eureka\Kernel\Http\RateLimiter\LimiterProvider\RouteQuotaLimiterProvider;
 use PHPUnit\Framework\TestCase;
-use Psr\Cache\CacheItemPoolInterface;
-use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 /**
@@ -26,8 +24,7 @@ use Symfony\Component\Cache\Adapter\ArrayAdapter;
  */
 class LimiterProviderTest extends TestCase
 {
-    /** @var string COUNTER_ID */
-    private const COUNTER_ID = 'counter.id';
+    private const LOCAL_IP   = '127.0.0.1';
 
     /**
      * @return void
@@ -50,7 +47,7 @@ class LimiterProviderTest extends TestCase
 
         $parameters = [
             RouteQuotaLimiterProvider::PARAM_ROUTE     => 'route_name',
-            RouteQuotaLimiterProvider::PARAM_CLIENT_IP => '127.0.0.1',
+            RouteQuotaLimiterProvider::PARAM_CLIENT_IP => self::LOCAL_IP,
         ];
 
         $limiterProvider->getQuotaLimiter($parameters)->assertQuotaNotReached();
@@ -69,7 +66,7 @@ class LimiterProviderTest extends TestCase
 
         $parameters = [
             RouteQuotaLimiterProvider::PARAM_ROUTE     => 'route_name',
-            RouteQuotaLimiterProvider::PARAM_CLIENT_IP => '127.0.0.1',
+            RouteQuotaLimiterProvider::PARAM_CLIENT_IP => self::LOCAL_IP,
         ];
 
         $this->expectException(QuotaExceededException::class);
@@ -89,7 +86,7 @@ class LimiterProviderTest extends TestCase
         $limiterProvider = new RouteQuotaLimiterProvider($cacheCounter, 2);
 
         $parameters = [
-            RouteQuotaLimiterProvider::PARAM_CLIENT_IP => '127.0.0.1',
+            RouteQuotaLimiterProvider::PARAM_CLIENT_IP => self::LOCAL_IP,
         ];
 
         $this->expectException(\InvalidArgumentException::class);

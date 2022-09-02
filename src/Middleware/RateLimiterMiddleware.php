@@ -30,10 +30,7 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class RateLimiterMiddleware implements MiddlewareInterface
 {
-    /** @var CacheItemPoolInterface $cache */
     protected CacheItemPoolInterface $cache;
-
-    /** @var IpResolver $ipResolver */
     protected IpResolver $ipResolver;
 
     /**
@@ -52,27 +49,28 @@ class RateLimiterMiddleware implements MiddlewareInterface
      * Process an incoming server request and return a response, optionally delegating
      * response creation to a handler.
      *
-     * @param ServerRequestInterface $serverRequest
+     * @param ServerRequestInterface $request
      * @param RequestHandlerInterface $handler
      * @return ResponseInterface
      * @throws HttpTooManyRequestsException
      */
-    public function process(ServerRequestInterface $serverRequest, RequestHandlerInterface $handler): ResponseInterface
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $route = $serverRequest->getAttribute('route', null);
+        /** @var array<string, string|int|bool|float|bool|null>|null $route */
+        $route = $request->getAttribute('route', null);
 
         if (!empty($route)) {
             $this->assertQuotaNotReached(
                 $route,
-                $this->ipResolver->resolve($serverRequest)
+                $this->ipResolver->resolve($request)
             );
         }
 
-        return $handler->handle($serverRequest);
+        return $handler->handle($request);
     }
 
     /**
-     * @param array $route
+     * @param array<string, string|int|bool|float|bool|null> $route
      * @param string $ip
      * @return void
      * @throws HttpTooManyRequestsException
@@ -89,6 +87,7 @@ class RateLimiterMiddleware implements MiddlewareInterface
         $cacheCounter              = new CacheCounter($this->cache, $ttl);
         $routeQuotaLimiterProvider = new RouteQuotaLimiterProvider($cacheCounter, $quota);
 
+        /** @var array<string, string> $parameters */
         $parameters = [
             'route' => $route['_route'],
             'ip'    => $ip,

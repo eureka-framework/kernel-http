@@ -15,6 +15,7 @@ use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Config\Loader\DelegatingLoader;
 use Symfony\Component\Config\Loader\LoaderResolver;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
@@ -33,33 +34,18 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
  */
 class Kernel
 {
-    /** @var string CONFIG_EXTENSIONS */
     private const CONFIG_EXTENSIONS = '.{php,xml,yaml,yml}';
 
-    /** @var ContainerBuilder|ContainerInterface $container */
-    private $container;
+    private ContainerInterface $container;
+    private ContainerBuilder $containerBuilder;
 
-    /** @var string $rootDirectory Root directory */
     private string $rootDirectory;
-
-    /** @var string $environment Environment */
     private string $environment;
-
-    /** @var bool $debug Debug */
     private bool $debug;
-
-    /** @var string $name */
     protected string $name = 'src';
-
-    /** @var string $varDirectory */
-    protected string $varDirectory = '';
+    protected string $varDirectory;
 
     /**
-     * Kernel constructor.
-     *
-     * @param $rootDirectory
-     * @param $environment
-     * @param bool $debug
      * @throws \Exception
      */
     public function __construct(string $rootDirectory, string $environment, bool $debug = false)
@@ -73,7 +59,7 @@ class Kernel
             ->initErrorReporting(E_ALL, 'true') // report & display all
             ->initVarSubDir()
             ->initContainer()
-            ->initErrorReporting() // report & display according to the config
+            ->overrideErrorReporting() // report & display according to the config
         ;
     }
 
@@ -96,7 +82,7 @@ class Kernel
         $containerConfigCache = new ConfigCache($file, $this->debug);
 
         if (!$containerConfigCache->isFresh()) {
-            $this->container = new ContainerBuilder();
+            $this->containerBuilder = new ContainerBuilder();
             $this->loadConfig();
             $this->registerCompilerPasses();
             $this->dumpContainer();
@@ -104,6 +90,7 @@ class Kernel
 
         require_once $file;
 
+        /** @var class-string<ContainerInterface> $className */
         $className = $this->getContainerClass();
         $this->container = new $className();
 
@@ -113,14 +100,35 @@ class Kernel
     /**
      * Initialize error reporting & display.
      *
-     * @param int|null $reporting
-     * @param string|null $display
+     * @param int $reporting
+     * @param string $display
      * @return Kernel
      */
-    protected function initErrorReporting(?int $reporting = null, ?string $display = null): self
+    protected function initErrorReporting(int $reporting, string $display): self
     {
-        error_reporting($reporting !== null ? $reporting : $this->container->getParameter('kernel.error.reporting'));
-        ini_set('display_errors', $display !== null ? $display : (string) $this->container->getParameter('kernel.error.display'));
+        error_reporting($reporting);
+        ini_set('display_errors', $display);
+
+        return $this;
+    }
+
+    /**
+     * Override error reporting & display from config if exists.
+     *
+     * @return Kernel
+     */
+    protected function overrideErrorReporting(): self
+    {
+        //~ Override reporting value from config
+        $reporting  = $this->container->getParameter('kernel.error.reporting');
+        $errorLevel = (int) (is_array($reporting) ? error_reporting(0) : $reporting);
+
+        //~ Override display value from config
+        $display      = $this->container->getParameter('kernel.error.display');
+        $errorDisplay = (string) (is_array($display) ? ini_get('display_errors') : $display);
+
+        error_reporting($errorLevel);
+        ini_set('display_errors', $errorDisplay);
 
         return $this;
     }
@@ -132,14 +140,14 @@ class Kernel
     protected function loadConfig(): self
     {
         //~ Get loader
-        $loader = $this->getContainerLoader($this->container);
-
-        $this->container->setParameter('kernel.environment', $this->environment);
-        $this->container->setParameter('kernel.directory.root', $this->rootDirectory);
+        $loader = $this->getContainerLoader($this->containerBuilder);
 
         //~ Load kernel config files
         $loader->load($this->getConfigDir() . '/{kernel}' . self::CONFIG_EXTENSIONS, 'glob');
         $loader->load($this->getConfigDir() . '/{kernel}_' . $this->environment . self::CONFIG_EXTENSIONS, 'glob'); // @deprecated
+
+        $this->containerBuilder->setParameter('kernel.environment', $this->environment);
+        $this->containerBuilder->setParameter('kernel.directory.root', $this->rootDirectory);
 
         //~ Load packages config files
         $loader->load($this->getConfigDir() . '/{packages}/*' . self::CONFIG_EXTENSIONS, 'glob');
@@ -157,7 +165,7 @@ class Kernel
         $loader->load($this->getConfigDir() . '/{secrets}/*' . self::CONFIG_EXTENSIONS, 'glob');
         $loader->load($this->getConfigDir() . '/{secrets}/**/*' . self::CONFIG_EXTENSIONS, 'glob');
 
-        $this->container->setParameter('kernel.directory.root', $this->rootDirectory);
+        $this->containerBuilder->setParameter('kernel.directory.root', $this->rootDirectory);
 
         return $this;
     }
@@ -169,16 +177,17 @@ class Kernel
      */
     protected function registerCompilerPasses(): self
     {
-        if (!$this->container->hasParameter('kernel.compiler_pass')) {
+        if (!$this->containerBuilder->hasParameter('kernel.compiler_pass')) {
             return $this; // @codeCoverageIgnore
         }
 
-        $compilerPasses = $this->container->getParameter('kernel.compiler_pass');
+        $compilerPasses = (array) $this->containerBuilder->getParameter('kernel.compiler_pass');
+        /** @var class-string<CompilerPassInterface> $compilerPass */
         foreach ($compilerPasses as $compilerPass) {
             if (!class_exists($compilerPass)) {
                 continue;
             }
-            $this->container->addCompilerPass(new $compilerPass()); // @codeCoverageIgnore
+            $this->containerBuilder->addCompilerPass(new $compilerPass()); // @codeCoverageIgnore
         }
 
         return $this;
@@ -195,17 +204,13 @@ class Kernel
         $containerConfigCache = new ConfigCache($file, $this->debug);
 
         if (!$containerConfigCache->isFresh()) {
-            $this->container->compile();
+            $this->containerBuilder->compile();
 
-            $dumper = new PhpDumper($this->container);
-            $containerConfigCache->write(
-                $dumper->dump(
-                    [
-                        'class' => $this->getContainerClass(),
-                    ]
-                ),
-                $this->container->getResources()
-            );
+            $dumper = new PhpDumper($this->containerBuilder);
+
+            /** @var string $content */
+            $content = $dumper->dump(['class' => $this->getContainerClass()]);
+            $containerConfigCache->write($content, $this->containerBuilder->getResources());
         }
     }
 

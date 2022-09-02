@@ -21,16 +21,13 @@ use Eureka\Kernel\Http\RateLimiter\Limiter\QuotaLimiter;
  */
 abstract class AbstractQuotaLimiterProvider
 {
-    /** @var CounterInterface $counter */
     private CounterInterface $counter;
-
-    /** @var int */
     private int $quota;
 
     /**
      * Implement your validation rules here (the mandatory keys in the $parameters with their allowed types).
      *
-     * @param array $parameters
+     * @param array<string, string> $parameters
      * @return void
      * @throws \InvalidArgumentException
      */
@@ -39,7 +36,7 @@ abstract class AbstractQuotaLimiterProvider
     /**
      * Returns the built counter id from the initial parameters.
      *
-     * @param array $parameters
+     * @param array<string, string> $parameters
      * @return string
      */
     abstract protected function buildCounterId(array $parameters): string;
@@ -57,7 +54,7 @@ abstract class AbstractQuotaLimiterProvider
     }
 
     /**
-     * @param array $parameters
+     * @param array<string, string> $parameters
      * @return QuotaLimiter
      */
     public function getQuotaLimiter(array $parameters): QuotaLimiter

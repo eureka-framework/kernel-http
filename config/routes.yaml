@@ -53,9 +53,9 @@ test_error_html_conflict:
     controller: Eureka\Kernel\Http\Tests\Mock\TestController::testConflictErrorHtmlAction
     methods:    [ GET ]
 
-test_error_type:
-    path:       /test/error/html/error
-    controller: Eureka\Kernel\Http\Tests\Mock\TestController::testErrorTypeHtmlAction
+test_error_html_type_error:
+    path:       /test/error/html/type-error
+    controller: Eureka\Kernel\Http\Tests\Mock\TestController::testTypeErrorHtmlAction
     methods:    [ GET ]
 
 test_error_action_not_exists:

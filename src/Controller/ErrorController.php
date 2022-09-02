@@ -82,7 +82,7 @@ class ErrorController extends Controller implements ErrorControllerInterface
      * @param \Exception $exception
      * @return string
      */
-    protected function getErrorContentHtml(ServerRequestInterface $request, \Exception $exception)
+    protected function getErrorContentHtml(ServerRequestInterface $request, \Throwable $exception): string
     {
         return
             '<pre>exception[' . get_class($exception) . ']: ' . PHP_EOL .
@@ -97,7 +97,7 @@ class ErrorController extends Controller implements ErrorControllerInterface
      * @return string
      * @codeCoverageIgnore
      */
-    protected function getErrorContentJson(int $code, \Exception $exception)
+    protected function getErrorContentJson(int $code, \Throwable $exception): string
     {
         //~ Ajax response error - JsonApi.org error object format + trace
         $error = [

@@ -122,7 +122,13 @@ class ControllerTest extends TestCase
      */
     private function getTestController(): TestController
     {
-        return $this->getKernel()->getContainer()->get('Eureka\Kernel\Http\Tests\Mock\TestController');
+        $controller = $this->getKernel()->getContainer()->get('Eureka\Kernel\Http\Tests\Mock\TestController');
+
+        if (!($controller instanceof TestController)) {
+            throw new \LogicException();
+        }
+
+        return $controller;
     }
 
     /**
@@ -131,7 +137,7 @@ class ControllerTest extends TestCase
      */
     private function getKernel(): Kernel
     {
-        $root  = realpath(__DIR__ . '/..');
+        $root  = (string) realpath(__DIR__ . '/..');
 
         //~ Overridden by conf
         $env   = 'dev';

@@ -48,17 +48,17 @@ class RouterMiddleware implements MiddlewareInterface
      * Process an incoming server request and return a response, optionally delegating
      * response creation to a handler.
      *
-     * @param ServerRequestInterface $serverRequest
+     * @param ServerRequestInterface $request
      * @param RequestHandlerInterface $handler
      * @return ResponseInterface
      * @throws HttpNotFoundException
      */
-    public function process(ServerRequestInterface $serverRequest, RequestHandlerInterface $handler): ResponseInterface
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         //~ Try to match url
         try {
-            $this->router->setContext($this->getRequestContext($serverRequest));
-            $route = $this->router->match((string) $serverRequest->getUri()->getPath());
+            $this->router->setContext($this->getRequestContext($request));
+            $route = $this->router->match((string) $request->getUri()->getPath());
         } catch (ResourceNotFoundException | RouteNotFoundException $exception) {
             throw new HttpNotFoundException($exception->getMessage(), 900, $exception);
         } catch (MethodNotAllowedException $exception) {
@@ -67,7 +67,7 @@ class RouterMiddleware implements MiddlewareInterface
         }
 
         //~ Add route param to request
-        $serverRequest = $serverRequest->withAttribute('route', $route);
+        $serverRequest = $request->withAttribute('route', $route);
 
         //~ Add route element to requests
         foreach ($route as $key => $value) {

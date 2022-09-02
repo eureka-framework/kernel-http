@@ -14,26 +14,28 @@ namespace Eureka\Kernel\Http\Application;
 use Eureka\Component\Http;
 use Eureka\Kernel\Http\Controller\ErrorController;
 use Eureka\Kernel\Http\Kernel;
+use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Server\MiddlewareInterface;
+use Safe\Exceptions\JsonException;
+
+use function Safe\json_decode;
 
 /**
  * Application class
  *
  * @author Romain Cottard
- * @noinspection PhpParamsInspection
  */
 class Application implements ApplicationInterface
 {
     /** @var MiddlewareInterface[] $middleware */
-    protected iterable $middleware = [];
-
-    /** @var Kernel $kernel */
+    protected array $middleware = [];
     protected Kernel $kernel;
 
     /**
@@ -49,13 +51,14 @@ class Application implements ApplicationInterface
     /**
      * @param ServerRequestInterface|null $serverRequest
      * @return ResponseInterface
+     * @throws JsonException
      */
     public function run(ServerRequestInterface $serverRequest = null): ResponseInterface
     {
-        $serverRequest = $serverRequest ?? $this->createServerRequest();
-        $response      = $this->createResponse($serverRequest);
-
         try {
+            $serverRequest = $serverRequest ?? $this->createServerRequest();
+            $response      = $this->createResponse($serverRequest);
+
             $this->loadMiddleware();
 
             //~ Get response through middlewares
@@ -64,16 +67,18 @@ class Application implements ApplicationInterface
         } catch (\Exception $exception) { // @codeCoverageIgnore
             // @codeCoverageIgnoreStart
             //~ Catch not handled exception - Should not happen
+            $serverRequest = $serverRequest ?? $this->createServerRequest(false);
+
             $controller = new ErrorController();
-            $controller->setResponseFactory($this->kernel->getContainer()->get('response_factory'));
-            $controller->setRequestFactory($this->kernel->getContainer()->get('request_factory'));
-            $controller->setServerRequestFactory($this->kernel->getContainer()->get('server_request_factory'));
-            $controller->setStreamFactory($this->kernel->getContainer()->get('stream_factory'));
-            $controller->setUriFactory($this->kernel->getContainer()->get('uri_factory'));
+            $controller->setResponseFactory($this->getResponseFactory());
+            $controller->setRequestFactory($this->getRequestFactory());
+            $controller->setServerRequestFactory($this->getServerRequestFactory());
+            $controller->setStreamFactory($this->getStreamFactory());
+            $controller->setUriFactory($this->getUriFactory());
             $controller->setServerRequest($serverRequest);
 
             $controller->setEnvironment(
-                $this->kernel->getContainer()->getParameter('kernel.environment'),
+                (string) $this->kernel->getContainer()->getParameter('kernel.environment'),
                 (bool) $this->kernel->getContainer()->getParameter('kernel.debug')
             );
 
@@ -126,10 +131,14 @@ class Application implements ApplicationInterface
     {
         $this->middleware = [];
 
+        /** @var string[] $list */
         $list = $this->kernel->getContainer()->getParameter('app.middleware');
 
         foreach ($list as $service) {
-            $this->middleware[] = $this->kernel->getContainer()->get($service);
+            /** @var MiddlewareInterface $middleware */
+            $middleware = $this->kernel->getContainer()->get($service);
+
+            $this->middleware[] = $middleware;
         }
     }
 
@@ -156,12 +165,12 @@ class Application implements ApplicationInterface
     }
 
     /**
+     * @param bool $withBody
      * @return ServerRequestInterface
      */
-    private function createServerRequest(): ServerRequestInterface
+    private function createServerRequest(bool $withBody = true): ServerRequestInterface
     {
-        /** @var ServerRequestFactoryInterface $serverRequestFactory */
-        $serverRequestFactory = $this->kernel->getContainer()->get('server_request_factory');
+        $serverRequestFactory = $this->getServerRequestFactory();
 
         $method  = !empty($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
 
@@ -170,20 +179,29 @@ class Application implements ApplicationInterface
 
         //~ Add global PHP post, get, cookies & files data
         $serverRequest = $serverRequest
-            ->withCookieParams($_COOKIE ?? [])
-            ->withQueryParams($_GET ?? [])
-            ->withUploadedFiles($_FILES ?? [])
+            ->withCookieParams(!empty($_COOKIE) ? $_COOKIE : [])
+            ->withQueryParams(!empty($_GET) ? $_GET : [])
+            ->withUploadedFiles(!empty($_FILES) ? $_FILES : [])
         ;
 
         //~ Add headers
         foreach ($this->getHeaders() as $header => $values) {
-            $serverRequest = $serverRequest->withAddedHeader($header, $values);// @codeCoverageIgnore
+            $serverRequest = $serverRequest->withAddedHeader($header, $values); // @codeCoverageIgnore
         }
 
-        //~ Add parsed body (need headers)
-        $parsedBody    = $this->getParsedBody($serverRequest->getHeader('Content-Type'));
+        if (!$withBody) {
+            return $serverRequest; // @codeCoverageIgnore
+        }
 
-        return $serverRequest->withParsedBody($parsedBody);
+        //~ Add parsed body
+        $contentTypes  = $serverRequest->getHeader('Content-Type');
+        $serverRequest = $serverRequest->withParsedBody($this->getParsedBody($contentTypes));
+
+        // Add raw body if not form data nor json
+        if (!$this->isRequestBodyForm($contentTypes) && !$this->isRequestBodyJson($contentTypes)) {
+            $serverRequest = $serverRequest->withBody($this->getStreamFactory()->createStream(file_get_contents('php://input') ?: ''));
+        }
+        return $serverRequest;
     }
 
     /**
@@ -191,15 +209,12 @@ class Application implements ApplicationInterface
      */
     private function createUri(): UriInterface
     {
-        /** @var UriFactoryInterface $uriFactory */
-        $uriFactory = $this->kernel->getContainer()->get('uri_factory');
+        $uriFactory = $this->getUriFactory();
 
         $uri = $uriFactory->createUri();
 
         //~ Set scheme
-        if (isset($_SERVER['HTTPS'])) {
-            $uri = $uri->withScheme($_SERVER['HTTPS'] == 'on' ? 'https' : 'http');
-        }
+        $uri = $uri->withScheme(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http');
 
         //~ Set host
         if (isset($_SERVER['HTTP_HOST'])) {
@@ -227,7 +242,7 @@ class Application implements ApplicationInterface
     }
 
     /**
-     * @return array
+     * @return array<string, string>
      *
      * @codeCoverageIgnore
      */
@@ -254,26 +269,127 @@ class Application implements ApplicationInterface
     }
 
     /**
-     * @param array $contentTypes
-     * @return mixed
+     * @param array<string> $contentTypes
+     * @return array<string, string|int|float|bool|null>
      */
-    private function getParsedBody(array $contentTypes)
+    private function getParsedBody(array $contentTypes): array
     {
-        foreach ($contentTypes as $contentType) {
-            // @codeCoverageIgnoreStart
-            if (preg_match('/^(application\/x-www-form-urlencoded|multipart\/form-data)/', $contentType)) {
-                return $_POST;
-            }
-            // @codeCoverageIgnoreEnd
+        if ($this->isRequestBodyForm($contentTypes)) {
+            return $_POST;
         }
 
         $requestBody = file_get_contents('php://input');
-        $parsedBody  = !empty($requestBody) ? json_decode($requestBody, true) : [];
+        try {
+            $parsedBody  = !empty($requestBody) ? json_decode($requestBody, true) : [];
+        } catch (JsonException $exception) {
+            $parsedBody = [];
+        }
 
         if (!empty($requestBody) && empty($parsedBody)) {
             parse_str($requestBody, $parsedBody); // @codeCoverageIgnore
         }
 
+        /** @var array<string, string|int|float|bool|null> $parsedBody */
         return $parsedBody;
+    }
+
+    /**
+     * @param array<string> $contentTypes
+     * @return bool
+     */
+    private function isRequestBodyForm(array $contentTypes): bool
+    {
+        foreach ($contentTypes as $contentType) {
+            // @codeCoverageIgnoreStart
+            if (preg_match('/^(application\/x-www-form-urlencoded|multipart\/form-data)/', $contentType)) {
+                return true;
+            }
+            // @codeCoverageIgnoreEnd
+        }
+        return false;
+    }
+
+    /**
+     * @param array<string> $contentTypes
+     * @return bool
+     */
+    private function isRequestBodyJson(array $contentTypes): bool
+    {
+        foreach ($contentTypes as $contentType) {
+            // @codeCoverageIgnoreStart
+            if (preg_match('/^(application\/json)/', $contentType)) {
+                return true;
+            }
+            // @codeCoverageIgnoreEnd
+        }
+        return false;
+    }
+
+    /**
+     * @return ResponseFactoryInterface
+     * @codeCoverageIgnore
+     */
+    private function getResponseFactory(): ResponseFactoryInterface
+    {
+        $factory = $this->kernel->getContainer()->get('response_factory');
+        if (!($factory instanceof ResponseFactoryInterface)) {
+            throw new \LogicException('Service "response_factory" not a ' . ResponseFactoryInterface::class);
+        }
+
+        return $factory;
+    }
+
+    /**
+     * @return RequestFactoryInterface
+     * @codeCoverageIgnore
+     */
+    private function getRequestFactory(): RequestFactoryInterface
+    {
+        $factory = $this->kernel->getContainer()->get('request_factory');
+        if (!($factory instanceof RequestFactoryInterface)) {
+            throw new \LogicException('Service "request_factory" not a ' . RequestFactoryInterface::class);
+        }
+
+        return $factory;
+    }
+
+    /**
+     * @return ServerRequestFactoryInterface
+     */
+    private function getServerRequestFactory(): ServerRequestFactoryInterface
+    {
+        $factory = $this->kernel->getContainer()->get('server_request_factory');
+        if (!($factory instanceof ServerRequestFactoryInterface)) {
+            throw new \LogicException('Service "server_request_factory" not a ' . ServerRequestFactoryInterface::class); // @codeCoverageIgnore
+        }
+
+        return $factory;
+    }
+
+    /**
+     * @return StreamFactoryInterface
+     * @codeCoverageIgnore
+     */
+    private function getStreamFactory(): StreamFactoryInterface
+    {
+        $factory = $this->kernel->getContainer()->get('stream_factory');
+        if (!($factory instanceof StreamFactoryInterface)) {
+            throw new \LogicException('Service "stream_factory" not a ' . StreamFactoryInterface::class);
+        }
+
+        return $factory;
+    }
+
+    /**
+     * @return UriFactoryInterface
+     */
+    private function getUriFactory(): UriFactoryInterface
+    {
+        $factory = $this->kernel->getContainer()->get('uri_factory');
+        if (!($factory instanceof UriFactoryInterface)) {
+            throw new \LogicException('Service "uri_factory" not a ' . UriFactoryInterface::class); // @codeCoverageIgnore
+        }
+
+        return $factory;
     }
 }

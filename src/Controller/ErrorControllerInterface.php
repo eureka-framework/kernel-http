@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace Eureka\Kernel\Http\Controller;
 
-use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -23,10 +22,9 @@ use Psr\Http\Message\ServerRequestInterface;
 interface ErrorControllerInterface extends ControllerInterface
 {
     /**
-     * @param ServerRequestInterface $request
+     * @param ServerRequestInterface $serverRequest
      * @param \Exception $exception
      * @return ResponseInterface
-     * @todo 6.0.0: Handle \Throwable here
      */
-    public function error(ServerRequestInterface $request, \Exception $exception): ResponseInterface;
+    public function error(ServerRequestInterface $serverRequest, \Exception $exception): ResponseInterface;
 }

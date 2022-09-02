@@ -13,6 +13,7 @@ namespace Eureka\Kernel\Http\Service;
 
 /**
  * Data Collection class.
+ * @implements \Iterator<string|int|float|bool|null>
  *
  * @author Romain Cottard
  */
@@ -24,16 +25,16 @@ class DataCollection implements \Iterator
     /** @var int Current position of the cursor in collection. */
     protected int $index = 0;
 
-    /** @var array $indices Index of keys */
+    /** @var array<int, string> $indices Index of keys */
     protected array $indices = [];
 
-    /** @var array $collection Collection of data. */
+    /** @var array<string, string|int|float|bool|null> $collection Collection of data. */
     protected array $collection = [];
 
     /**
      * DataCollection constructor.
      *
-     * @param array $data
+     * @param array<string, string|int|float|bool|null> $data
      */
     public function __construct(array $data = [])
     {
@@ -50,7 +51,7 @@ class DataCollection implements \Iterator
      * Add data to the collection.
      *
      * @param string $key
-     * @param mixed $value
+     * @param string|int|float|bool|null $value
      * @return $this
      */
     public function add(string $key, $value): self
@@ -75,8 +76,9 @@ class DataCollection implements \Iterator
     /**
      * Get current data
      *
-     * @return mixed
+     * @return string|int|float|bool|null
      */
+    #[\ReturnTypeWillChange]
     public function current()
     {
         return $this->collection[$this->indices[$this->index]];
@@ -97,7 +99,7 @@ class DataCollection implements \Iterator
      *
      * @return string
      */
-    public function key()
+    public function key(): string
     {
         return $this->indices[$this->index];
     }
@@ -135,14 +137,12 @@ class DataCollection implements \Iterator
     /**
      * Convert to array
      *
-     * @return array
+     * @return array<string, string|int|float|bool|null>
      */
     public function toArray(): array
     {
-        $array = [];
-        foreach ($this as $key => $value) {
-            $array[$key] = $value;
-        }
+        $array = $this->collection;
+        reset($array);
 
         return $array;
     }

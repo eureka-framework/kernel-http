@@ -194,7 +194,7 @@ class ApplicationTest extends TestCase
      */
     private function getApplication(): ApplicationInterface
     {
-        $root  = realpath(__DIR__ . '/..');
+        $root  = (string) realpath(__DIR__ . '/..');
         $env   = 'dev';
         $debug = true;
 
@@ -202,7 +202,7 @@ class ApplicationTest extends TestCase
     }
 
     /**
-     * @return array
+     * @return array<string,string[]>
      */
     public function uriExceptionDataProvider(): array
     {
@@ -231,8 +231,8 @@ class ApplicationTest extends TestCase
                 '/test/error/html/conflict',
                 HttpConflictException::class,
             ],
-            'Error' => [
-                '/test/error/html/error',
+            'TypeError' => [
+                '/test/error/html/type-error',
                 HttpInternalServerErrorException::class,
             ],
         ];

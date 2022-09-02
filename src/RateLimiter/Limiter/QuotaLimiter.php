@@ -21,13 +21,8 @@ use Eureka\Kernel\Http\RateLimiter\Exception\QuotaExceededException;
  */
 class QuotaLimiter implements LimiterInterface
 {
-    /** @var CounterInterface */
     private CounterInterface $counters;
-
-    /** @var string */
     private string $counterId;
-
-    /** @var int */
     private int $quota;
 
     /**

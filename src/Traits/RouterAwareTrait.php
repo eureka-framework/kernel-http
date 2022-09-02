@@ -20,10 +20,9 @@ use Symfony\Component\Routing\Router;
  */
 trait RouterAwareTrait
 {
-    /** @var Router $router */
     protected Router $router;
 
-    /** @var array $route */
+    /** @var array<string, string|int|bool|float|null> */
     protected array $route = [];
 
     /**
@@ -36,7 +35,7 @@ trait RouterAwareTrait
     }
 
     /**
-     * @param array $route
+     * @param array<string, string|int|bool|float|null> $route
      * @return void
      */
     public function setRoute(array $route): void
@@ -53,7 +52,7 @@ trait RouterAwareTrait
     }
 
     /**
-     * @return array
+     * @return array<string, string|int|bool|float|bool|null>
      */
     protected function getRoute(): array
     {
@@ -62,7 +61,7 @@ trait RouterAwareTrait
 
     /**
      * @param string $routeName
-     * @param array $params
+     * @param array<string, string|int|bool|float|bool|null> $params
      * @return string
      */
     protected function getRouteUri(string $routeName, array $params = []): string
@@ -81,7 +80,7 @@ trait RouterAwareTrait
 
     /**
      * @param string $name
-     * @param mixed|null $default
+     * @param string|int|bool|float|null $default
      * @return mixed|null
      */
     protected function getParameter(string $name, $default = null)

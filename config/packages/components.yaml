@@ -6,7 +6,7 @@ services:
         public: false
 
     Nyholm\Psr7\:
-        resource: '../../vendor/nyholm/psr7/src/*'
+        resource: '%kernel.directory.root%/vendor/nyholm/psr7/src/*'
 
     #~ PSR-17 Factories
     response_factory:
@@ -31,12 +31,11 @@ services:
 
     #~ PSR
     Psr\Log\:
-        resource: '../../vendor/psr/log/Psr/Log/*'
-        exclude: '../../vendor/psr/log/Psr/Log/{Test}'
+        resource: '%kernel.directory.root%/vendor/psr/log/src/*'
         public: false
 
     Eureka\Component\Http\:
-        resource: '../../vendor/eureka/component-http/src/*'
+        resource: '%kernel.directory.root%/vendor/eureka/component-http/src/*'
 
     Psr\Cache\CacheItemPoolInterface:
         alias: Symfony\Component\Cache\Adapter\ArrayAdapter

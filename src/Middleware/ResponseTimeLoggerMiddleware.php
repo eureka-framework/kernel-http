@@ -24,10 +24,7 @@ use Psr\Log\LoggerInterface;
  */
 class ResponseTimeLoggerMiddleware implements MiddlewareInterface
 {
-    /** @var LoggerInterface $logger */
     private LoggerInterface $logger;
-
-    /** @var string $applicationName */
     private string $applicationName;
 
     /**

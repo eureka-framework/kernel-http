@@ -20,7 +20,6 @@ use Psr\Log\LoggerInterface;
  */
 trait LoggerAwareTrait
 {
-    /** @var LoggerInterface $logger*/
     protected LoggerInterface $logger;
 
     /**

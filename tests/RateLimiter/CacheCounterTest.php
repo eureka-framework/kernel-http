@@ -13,7 +13,6 @@ namespace Eureka\Kernel\Http\Tests\RateLimiter;
 
 use Eureka\Kernel\Http\RateLimiter\Counter\CacheCounter;
 use PHPUnit\Framework\TestCase;
-use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
@@ -39,7 +38,6 @@ class CacheCounterTest extends TestCase
 
     /**
      * @return void
-     * @throws InvalidArgumentException
      */
     public function testICanAddValueOneTwiceAndGetTwoAsValue(): void
     {
@@ -97,7 +95,6 @@ class CacheCounterTest extends TestCase
 
     /**
      * @return void
-     * @throws InvalidArgumentException
      */
     public function testICanGetCounterTTLValue(): void
     {

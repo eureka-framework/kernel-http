@@ -19,8 +19,6 @@ use Eureka\Kernel\Http\Exception\HttpInternalServerErrorException;
 use Eureka\Kernel\Http\Exception\HttpServiceUnavailableException;
 use Eureka\Kernel\Http\Exception\HttpUnauthorizedException;
 use Eureka\Kernel\Http\Service\DataCollection;
-use Eureka\Kernel\Http\Service\Session;
-use Eureka\Kernel\Http\Traits\SessionAwareTrait;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -38,6 +36,8 @@ use Symfony\Component\Routing\RouterInterface;
  */
 class TestController extends Controller
 {
+    private const EXCEPTION_MESSAGE = 'throw an error (html)';
+
     /**
      * @return ResponseInterface
      */
@@ -59,7 +59,7 @@ class TestController extends Controller
      */
     public function testInternalServerErrorHtmlAction(): ResponseInterface
     {
-        throw new HttpInternalServerErrorException('throw an error (html)', 99);
+        throw new HttpInternalServerErrorException(self::EXCEPTION_MESSAGE, 99);
     }
 
     /**
@@ -67,7 +67,7 @@ class TestController extends Controller
      */
     public function testBadRequestErrorHtmlAction(): ResponseInterface
     {
-        throw new HttpBadRequestException('throw an error (html)', 99);
+        throw new HttpBadRequestException(self::EXCEPTION_MESSAGE, 99);
     }
 
     /**
@@ -75,7 +75,7 @@ class TestController extends Controller
      */
     public function testUnauthorizedErrorHtmlAction(): ResponseInterface
     {
-        throw new HttpUnauthorizedException('throw an error (html)', 99);
+        throw new HttpUnauthorizedException(self::EXCEPTION_MESSAGE, 99);
     }
 
     /**
@@ -83,7 +83,7 @@ class TestController extends Controller
      */
     public function testForbiddenErrorHtmlAction(): ResponseInterface
     {
-        throw new HttpForbiddenException('throw an error (html)', 99);
+        throw new HttpForbiddenException(self::EXCEPTION_MESSAGE, 99);
     }
 
     /**
@@ -91,7 +91,7 @@ class TestController extends Controller
      */
     public function testServiceUnavailableErrorHtmlAction(): ResponseInterface
     {
-        throw new HttpServiceUnavailableException('throw an error (html)', 99);
+        throw new HttpServiceUnavailableException(self::EXCEPTION_MESSAGE, 99);
     }
 
     /**
@@ -99,15 +99,15 @@ class TestController extends Controller
      */
     public function testConflictErrorHtmlAction(): ResponseInterface
     {
-        throw new HttpConflictException('throw an error (html)', 99);
+        throw new HttpConflictException(self::EXCEPTION_MESSAGE, 99);
     }
 
     /**
      * @return ResponseInterface
      */
-    public function testErrorTypeHtmlAction(): ResponseInterface
+    public function testTypeErrorHtmlAction(): ResponseInterface
     {
-        throw new \Error('throw an error (html)', 99);
+        throw new \TypeError(self::EXCEPTION_MESSAGE, 99);
     }
 
     /**
@@ -160,7 +160,7 @@ class TestController extends Controller
         }
 
         //~ Not defined when controller is not called from middleware, so just call to check method availability
-        $this->getRoute();
+        $route = $this->getRoute();
 
         if ($this->getRouteUri('test_json') !== '/test/json') {
             throw new \RuntimeException('Invalid generated route uri!');
@@ -261,15 +261,15 @@ class TestController extends Controller
     public function assertHasPropertiesCorrectlySet(): bool
     {
         if ($this->isDev() === false) {
-            throw new \RuntimeException('Should be prod environment!');
+            throw new \RuntimeException('Should be prod environment (not dev)!');
         }
 
         if ($this->isProd() === true) {
-            throw new \RuntimeException('Should be prod environment!');
+            throw new \RuntimeException('Should be prod environment (is prod)!');
         }
 
         if ($this->getEnvironment() !== 'dev') {
-            throw new \RuntimeException('Should be prod environment!');
+            throw new \RuntimeException('Should be prod environment (!== dev)!');
         }
 
         if ($this->isDebug() === true) {

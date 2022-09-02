@@ -42,17 +42,16 @@ class ErrorMiddleware implements MiddlewareInterface
      * Process an incoming server request and return a response, optionally delegating
      * response creation to a handler.
      *
-     * @param ServerRequestInterface $serverRequest
+     * @param ServerRequestInterface $request
      * @param RequestHandlerInterface $handler
      * @return ResponseInterface
-     * @throws
      */
-    public function process(ServerRequestInterface $serverRequest, RequestHandlerInterface $handler): ResponseInterface
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         try {
-            $response = $handler->handle($serverRequest);
+            $response = $handler->handle($request);
         } catch (\Throwable $exception) {
-            $response = $this->getErrorResponse($serverRequest, $exception);
+            $response = $this->getErrorResponse($request, $exception);
         }
 
         return $response;
@@ -64,7 +63,6 @@ class ErrorMiddleware implements MiddlewareInterface
      * @param ServerRequestInterface $serverRequest
      * @param \Throwable $exception
      * @return ResponseInterface
-     * @throws
      */
     private function getErrorResponse(ServerRequestInterface $serverRequest, \Throwable $exception): ResponseInterface
     {
@@ -72,7 +70,9 @@ class ErrorMiddleware implements MiddlewareInterface
             $exception = new HttpInternalServerErrorException($exception->getMessage(), $exception->getCode(), $exception);
         }
 
+
         $this->controller->preAction($serverRequest);
+        /** @var \Exception $exception */
         $response = $this->controller->error($serverRequest, $exception);
         $this->controller->postAction();
 

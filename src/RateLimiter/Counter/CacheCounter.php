@@ -21,13 +21,8 @@ use Psr\Cache\InvalidArgumentException;
  */
 class CacheCounter implements CounterInterface
 {
-    /** @var CacheItemPoolInterface $cache */
     private CacheItemPoolInterface $cache;
-
-    /** @var int $cacheTTL */
     private int $cacheTTL;
-
-    /** @var int $stepTTL */
     private int $stepTTL;
 
     /**
@@ -55,6 +50,7 @@ class CacheCounter implements CounterInterface
     {
         //~ Retrieve counter from cache
         $item    = $this->cache->getItem($id);
+        /** @var array<int, int> $counter */
         $counter = $item->isHit() ? $item->get() : [];
 
         //~ Clean older values & add new value
@@ -79,6 +75,7 @@ class CacheCounter implements CounterInterface
     {
         //~ Retrieve counter from cache
         $item    = $this->cache->getItem($id);
+        /** @var array<int, int> $counter */
         $counter = $item->isHit() ? $item->get() : [];
 
         //~ Clean older values
@@ -112,12 +109,12 @@ class CacheCounter implements CounterInterface
     }
 
     /**
-     * @param array $counter
-     * @return array
+     * @param array<int, int> $counter
+     * @return int[]
      */
     private function clean(array $counter): array
     {
-        $minTimeStep = ceil((time() - $this->cacheTTL) / $this->stepTTL);
+        $minTimeStep = (int) ceil((time() - $this->cacheTTL) / $this->stepTTL);
         foreach ($counter as $timeStep => $oldValue) {
             if ($minTimeStep > $timeStep) {
                 unset($counter[$timeStep]);
@@ -128,13 +125,13 @@ class CacheCounter implements CounterInterface
     }
 
     /**
-     * @param array $counter
+     * @param array<int, int> $counter
      * @param int $value
-     * @return array
+     * @return int[]
      */
     private function add(array $counter, int $value): array
     {
-        $timeStep = ceil(time() / $this->stepTTL);
+        $timeStep = (int) ceil(time() / $this->stepTTL);
         if (!isset($counter[$timeStep])) {
             $counter[$timeStep] = 0;
         }

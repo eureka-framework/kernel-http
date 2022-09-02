@@ -13,7 +13,9 @@ namespace Eureka\Kernel\Http\Middleware;
 
 use Eureka\Kernel\Http\Controller\ControllerInterface;
 use Eureka\Kernel\Http\Exception\HttpNotFoundException;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -26,7 +28,6 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class ControllerMiddleware implements MiddlewareInterface
 {
-    /** @var ContainerInterface $container */
     protected ContainerInterface $container;
 
     /**
@@ -46,6 +47,8 @@ class ControllerMiddleware implements MiddlewareInterface
      * @param ServerRequestInterface $request
      * @param RequestHandlerInterface $handler
      * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -64,18 +67,22 @@ class ControllerMiddleware implements MiddlewareInterface
     /**
      * Run application middleware.
      *
-     * @param  ServerRequestInterface $request
+     * @param ServerRequestInterface $request
      * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     private function handle(ServerRequestInterface $request): ResponseInterface
     {
+        /** @var array<string, string|int|bool|float|bool|null> $route */
         $route = $request->getAttribute('route') ?? [];
 
         //~ Remove route from request
         $request = $request->withoutAttribute('route');
 
-        [$controllerName, $action] = explode('::', $route['_controller']);
+        [$controllerName, $action] = explode('::', (string) $route['_controller']);
 
+        /** @var ControllerInterface|object $controller */
         $controller = $this->container->get($controllerName);
 
         if (!method_exists($controller, $action)) {

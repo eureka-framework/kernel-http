@@ -27,7 +27,7 @@ class RouteQuotaLimiterProvider extends AbstractQuotaLimiterProvider
     /**
      * Implement your validation rules here (the mandatory keys in the $parameters with their allowed types).
      *
-     * @param array $parameters
+     * @param array<string, string> $parameters
      * @return void
      * @throws \InvalidArgumentException
      */
@@ -46,7 +46,7 @@ class RouteQuotaLimiterProvider extends AbstractQuotaLimiterProvider
     /**
      * Returns the built cache key from the initial parameters.
      *
-     * @param array $parameters
+     * @param array<string, string> $parameters
      * @return string
      */
     protected function buildCounterId(array $parameters): string

@@ -21,7 +21,9 @@ use Psr\Http\Message\ServerRequestInterface;
 interface ControllerInterface
 {
     /**
-     * @param array $route
+     * Set current route data.
+     *
+     * @param array<string, string|int|bool|float|bool|null> $route
      * @return void
      */
     public function setRoute(array $route): void;
@@ -29,16 +31,16 @@ interface ControllerInterface
     /**
      * This method is executed before the main controller action method.
      *
-     * @param null|ServerRequestInterface $request
+     * @param null|ServerRequestInterface $serverRequest
      * @return void
      */
-    public function preAction(?ServerRequestInterface $request = null): void;
+    public function preAction(?ServerRequestInterface $serverRequest = null): void;
 
     /**
      * This method is executed after the main controller action method.
      *
-     * @param null|ServerRequestInterface $request
+     * @param null|ServerRequestInterface $serverRequest
      * @return void
      */
-    public function postAction(?ServerRequestInterface $request = null): void;
+    public function postAction(?ServerRequestInterface $serverRequest = null): void;
 }

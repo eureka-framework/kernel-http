@@ -24,19 +24,10 @@ use Psr\Http\Message\UriFactoryInterface;
  */
 trait HttpFactoryAwareTrait
 {
-    /** @var UriFactoryInterface */
     private UriFactoryInterface $uriFactory;
-
-    /** @var RequestFactoryInterface */
     private RequestFactoryInterface $requestFactory;
-
-    /** @var ServerRequestFactoryInterface */
     private ServerRequestFactoryInterface $serverRequestFactory;
-
-    /** @var ResponseFactoryInterface */
     private ResponseFactoryInterface $responseFactory;
-
-    /** @var StreamFactoryInterface */
     private StreamFactoryInterface $streamFactory;
 
     /**
