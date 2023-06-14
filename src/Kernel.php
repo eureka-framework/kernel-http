@@ -121,11 +121,11 @@ class Kernel
     {
         //~ Override reporting value from config
         $reporting  = $this->container->getParameter('kernel.error.reporting');
-        $errorLevel = (int) (is_array($reporting) ? error_reporting(0) : $reporting);
+        $errorLevel = (int) (!is_scalar($reporting) ? error_reporting(0) : $reporting);
 
         //~ Override display value from config
         $display      = $this->container->getParameter('kernel.error.display');
-        $errorDisplay = (string) (is_array($display) ? ini_get('display_errors') : $display);
+        $errorDisplay = (string) (!is_scalar($display) ? ini_get('display_errors') : $display);
 
         error_reporting($errorLevel);
         ini_set('display_errors', $errorDisplay);

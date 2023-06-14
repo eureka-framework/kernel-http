@@ -77,10 +77,12 @@ class Application implements ApplicationInterface
             $controller->setUriFactory($this->getUriFactory());
             $controller->setServerRequest($serverRequest);
 
-            $controller->setEnvironment(
-                (string) $this->kernel->getContainer()->getParameter('kernel.environment'),
-                (bool) $this->kernel->getContainer()->getParameter('kernel.debug')
-            );
+            /** @var string $env */
+            $env = $this->kernel->getContainer()->getParameter('kernel.environment');
+            /** @var bool $debug */
+            $debug = $this->kernel->getContainer()->getParameter('kernel.debug');
+
+            $controller->setEnvironment((string) $env, (bool) $debug);
 
             $response = $controller->error($serverRequest, $exception);
             // @codeCoverageIgnoreEnd

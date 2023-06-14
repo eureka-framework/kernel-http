@@ -27,7 +27,7 @@ class RouteQuotaLimiterProvider extends AbstractQuotaLimiterProvider
     /**
      * Implement your validation rules here (the mandatory keys in the $parameters with their allowed types).
      *
-     * @param array<string, string> $parameters
+     * @param array<string, string|mixed> $parameters
      * @return void
      * @throws \InvalidArgumentException
      */
