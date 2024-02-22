@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace Eureka\Kernel\Http\Tests\Service;
+namespace Eureka\Kernel\Http\Tests\Unit\Service;
 
 use Eureka\Kernel\Http\Service\DataCollection;
 use PHPUnit\Framework\TestCase;
@@ -28,7 +28,7 @@ class DataCollectionTest extends TestCase
     {
         $collection = new DataCollection();
 
-        $this->assertInstanceOf(DataCollection::class, $collection);
+        self::assertInstanceOf(DataCollection::class, $collection);
     }
 
     /**
@@ -39,14 +39,14 @@ class DataCollectionTest extends TestCase
         $data = ['one' => 1, 'two' => 2];
         $collection = new DataCollection($data);
 
-        $this->assertEquals(2, $collection->length());
+        self::assertEquals(2, $collection->length());
 
         foreach ($collection as $key => $value) {
-            $this->assertEquals($data[$key], $value);
+            self::assertEquals($data[$key], $value);
         }
 
         $collection->reset();
 
-        $this->assertEquals($data, $collection->toArray());
+        self::assertEquals($data, $collection->toArray());
     }
 }

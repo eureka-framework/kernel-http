@@ -21,9 +21,6 @@ use Eureka\Kernel\Http\Exception\HttpTooManyRequestsException;
 use Eureka\Kernel\Http\Exception\HttpUnauthorizedException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Safe\Exceptions\JsonException;
-
-use function Safe\json_encode;
 
 /**
  * Controller class
@@ -112,8 +109,8 @@ class ErrorController extends Controller implements ErrorControllerInterface
         }
 
         try {
-            $content = json_encode($error);
-        } catch (JsonException $exception) {
+            $content = \json_encode($error, \JSON_THROW_ON_ERROR);
+        } catch (\JsonException $exception) {
             $content = 'json_encode error (' . $exception->getMessage() . ')';
         }
 

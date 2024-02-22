@@ -23,14 +23,20 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Server\MiddlewareInterface;
-use Safe\Exceptions\JsonException;
-
-use function Safe\json_decode;
 
 /**
  * Application class
  *
  * @author Romain Cottard
+ * @phpstan-type ServerParams array{
+ *     REQUEST_METHOD?: string,
+ *     HTTPS?: string,
+ *     HTTP_HOST?: string,
+ *     SERVER_NAME?: string,
+ *     SERVER_PORT?: string,
+ *     REQUEST_URI?: string,
+ *     QUERY_STRING?: string,
+ * }
  */
 class Application implements ApplicationInterface
 {
@@ -51,7 +57,6 @@ class Application implements ApplicationInterface
     /**
      * @param ServerRequestInterface|null $serverRequest
      * @return ResponseInterface
-     * @throws JsonException
      */
     public function run(ServerRequestInterface $serverRequest = null): ResponseInterface
     {
@@ -98,21 +103,21 @@ class Application implements ApplicationInterface
     public function send(ResponseInterface $response): ApplicationInterface
     {
         //~ Write Headers
-        if (!headers_sent()) {
+        if (!\headers_sent()) {
             // @codeCoverageIgnoreStart
             //~ Base header
-            $header = sprintf(
+            $header = \sprintf(
                 'HTTP/%s %s %s',
                 $response->getProtocolVersion(),
                 $response->getStatusCode(),
                 $response->getReasonPhrase()
             );
-            header($header, true, $response->getStatusCode());
+            \header($header, true, $response->getStatusCode());
 
             //~ Headers
-            foreach ($response->getHeaders() as $header => $values) {
+            foreach ($response->getHeaders() as $keyHeader => $values) {
                 foreach ($values as $value) {
-                    header($header . ': ' . $value, false, $response->getStatusCode());
+                    \header($keyHeader . ': ' . $value, false, $response->getStatusCode());
                 }
             }
             // @codeCoverageIgnoreEnd
@@ -158,7 +163,7 @@ class Application implements ApplicationInterface
         //~ Automatic add "application/json" to response header when client accept "json" in response.
         if (
             $serverRequest->hasHeader('Accept') &&
-            in_array('application/json', $serverRequest->getHeader('Accept'))
+            \in_array('application/json', $serverRequest->getHeader('Accept'), true) // @codeCoverageIgnore
         ) {
             $response = $response->withAddedHeader('Content-Type', 'application/json'); // @codeCoverageIgnore
         }
@@ -174,16 +179,18 @@ class Application implements ApplicationInterface
     {
         $serverRequestFactory = $this->getServerRequestFactory();
 
-        $method  = !empty($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
+        /** @var ServerParams $params */
+        $params = $_SERVER;
+        $method = !empty($params['REQUEST_METHOD']) ? $params['REQUEST_METHOD'] : 'GET';
 
         //~ Create server request
         $serverRequest = $serverRequestFactory->createServerRequest($method, $this->createUri(), $_SERVER);
 
         //~ Add global PHP post, get, cookies & files data
         $serverRequest = $serverRequest
-            ->withCookieParams(!empty($_COOKIE) ? $_COOKIE : [])
-            ->withQueryParams(!empty($_GET) ? $_GET : [])
-            ->withUploadedFiles(!empty($_FILES) ? $_FILES : [])
+            ->withCookieParams($_COOKIE)
+            ->withQueryParams($_GET)
+            ->withUploadedFiles($_FILES)
         ;
 
         //~ Add headers
@@ -201,7 +208,10 @@ class Application implements ApplicationInterface
 
         // Add raw body if not form data nor json
         if (!$this->isRequestBodyForm($contentTypes) && !$this->isRequestBodyJson($contentTypes)) {
-            $serverRequest = $serverRequest->withBody($this->getStreamFactory()->createStream(file_get_contents('php://input') ?: ''));
+            $content = \file_get_contents('php://input');
+            $serverRequest = $serverRequest
+                ->withBody($this->getStreamFactory()->createStream($content !== false ? $content : ''))
+            ;
         }
         return $serverRequest;
     }
@@ -215,29 +225,32 @@ class Application implements ApplicationInterface
 
         $uri = $uriFactory->createUri();
 
+        /** @var ServerParams $params */
+        $params = $_SERVER;
+
         //~ Set scheme
-        $uri = $uri->withScheme(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http');
+        $uri = $uri->withScheme(isset($params['HTTPS']) && $params['HTTPS'] === 'on' ? 'https' : 'http');
 
         //~ Set host
-        if (isset($_SERVER['HTTP_HOST'])) {
-            $uri = $uri->withHost($_SERVER['HTTP_HOST']);
-        } elseif (isset($_SERVER['SERVER_NAME'])) {
-            $uri = $uri->withHost($_SERVER['SERVER_NAME']);
+        if (isset($params['HTTP_HOST'])) {
+            $uri = $uri->withHost($params['HTTP_HOST']);
+        } elseif (isset($params['SERVER_NAME'])) {
+            $uri = $uri->withHost($params['SERVER_NAME']);
         }
 
         //~ Set port
-        if (isset($_SERVER['SERVER_PORT'])) {
-            $uri = $uri->withPort((int) $_SERVER['SERVER_PORT']);
+        if (isset($params['SERVER_PORT'])) {
+            $uri = $uri->withPort((int) $params['SERVER_PORT']);
         }
 
         //~ Set path
-        if (isset($_SERVER['REQUEST_URI'])) {
-            $uri = $uri->withPath(current(explode('?', $_SERVER['REQUEST_URI'])));
+        if (isset($params['REQUEST_URI'])) {
+            $uri = $uri->withPath(current(explode('?', $params['REQUEST_URI'])));
         }
 
         //~ Set query string
-        if (isset($_SERVER['QUERY_STRING'])) {
-            $uri = $uri->withQuery($_SERVER['QUERY_STRING']);
+        if (isset($params['QUERY_STRING'])) {
+            $uri = $uri->withQuery($params['QUERY_STRING']);
         }
 
         return $uri;
@@ -252,7 +265,7 @@ class Application implements ApplicationInterface
     {
         $headers = [];
         if (function_exists('apache_request_headers')) {
-            $headers = apache_request_headers();
+            $headers = \apache_request_headers();
 
             if ($headers === false) {
                 $headers = [];
@@ -260,7 +273,7 @@ class Application implements ApplicationInterface
         }
 
         foreach ($headers as $name => $header) {
-            if (!is_array($header)) {
+            if (!\is_array($header)) {
                 $header = [$header];
             }
 
@@ -277,18 +290,25 @@ class Application implements ApplicationInterface
     private function getParsedBody(array $contentTypes): array
     {
         if ($this->isRequestBodyForm($contentTypes)) {
-            return $_POST;
+            // @codeCoverageIgnoreStart
+            /** @phpstan-var array<string, string|int|float|bool|null> $parsedBody */
+            $parsedBody = $_POST;
+
+            return $parsedBody;
+            // @codeCoverageIgnoreEnd
         }
 
-        $requestBody = file_get_contents('php://input');
+        $requestBody = \file_get_contents('php://input');
         try {
-            $parsedBody  = !empty($requestBody) ? json_decode($requestBody, true) : [];
-        } catch (JsonException $exception) {
+            $parsedBody  = !empty($requestBody) ? json_decode($requestBody, true, 512, JSON_THROW_ON_ERROR) : [];
+        // @codeCoverageIgnoreStart
+        } catch (\JsonException) {
             $parsedBody = [];
         }
+        // @codeCoverageIgnoreEnd
 
         if (!empty($requestBody) && empty($parsedBody)) {
-            parse_str($requestBody, $parsedBody); // @codeCoverageIgnore
+            \parse_str($requestBody, $parsedBody); // @codeCoverageIgnore
         }
 
         /** @var array<string, string|int|float|bool|null> $parsedBody */
@@ -303,7 +323,7 @@ class Application implements ApplicationInterface
     {
         foreach ($contentTypes as $contentType) {
             // @codeCoverageIgnoreStart
-            if (preg_match('/^(application\/x-www-form-urlencoded|multipart\/form-data)/', $contentType)) {
+            if (\preg_match('/^(application\/x-www-form-urlencoded|multipart\/form-data)/', $contentType) > 0) {
                 return true;
             }
             // @codeCoverageIgnoreEnd
@@ -319,7 +339,7 @@ class Application implements ApplicationInterface
     {
         foreach ($contentTypes as $contentType) {
             // @codeCoverageIgnoreStart
-            if (preg_match('/^(application\/json)/', $contentType)) {
+            if (\preg_match('/^(application\/json)/', $contentType) > 0) {
                 return true;
             }
             // @codeCoverageIgnoreEnd
@@ -362,7 +382,11 @@ class Application implements ApplicationInterface
     {
         $factory = $this->kernel->getContainer()->get('server_request_factory');
         if (!($factory instanceof ServerRequestFactoryInterface)) {
-            throw new \LogicException('Service "server_request_factory" not a ' . ServerRequestFactoryInterface::class); // @codeCoverageIgnore
+            // @codeCoverageIgnoreStart
+            throw new \LogicException(
+                'Service "server_request_factory" not a ' . ServerRequestFactoryInterface::class
+            );
+            // @codeCoverageIgnoreEnd
         }
 
         return $factory;
@@ -389,7 +413,11 @@ class Application implements ApplicationInterface
     {
         $factory = $this->kernel->getContainer()->get('uri_factory');
         if (!($factory instanceof UriFactoryInterface)) {
-            throw new \LogicException('Service "uri_factory" not a ' . UriFactoryInterface::class); // @codeCoverageIgnore
+            // @codeCoverageIgnoreStart
+            throw new \LogicException(
+                'Service "uri_factory" not a ' . UriFactoryInterface::class
+            );
+            // @codeCoverageIgnoreEnd
         }
 
         return $factory;

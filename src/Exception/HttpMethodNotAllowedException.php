@@ -16,6 +16,4 @@ namespace Eureka\Kernel\Http\Exception;
  *
  * @author Romain Cottard
  */
-class HttpMethodNotAllowedException extends \RuntimeException
-{
-}
+class HttpMethodNotAllowedException extends \RuntimeException {}

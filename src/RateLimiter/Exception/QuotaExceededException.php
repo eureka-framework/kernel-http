@@ -16,6 +16,4 @@ namespace Eureka\Kernel\Http\RateLimiter\Exception;
  *
  * @author Romain Cottard
  */
-class QuotaExceededException extends \OutOfBoundsException
-{
-}
+class QuotaExceededException extends \OutOfBoundsException {}

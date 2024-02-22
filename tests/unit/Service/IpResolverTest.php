@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace Eureka\Kernel\Http\Tests\Service;
+namespace Eureka\Kernel\Http\Tests\Unit\Service;
 
 use Eureka\Kernel\Http\Service\IpResolver;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -30,7 +30,7 @@ class IpResolverTest extends TestCase
     {
         $serverRequest = $this->getServerRequest('127.0.0.1');
 
-        $this->assertEmpty((new IpResolver())->resolve($serverRequest));
+        self::assertEmpty((new IpResolver())->resolve($serverRequest));
     }
 
     /**
@@ -40,7 +40,7 @@ class IpResolverTest extends TestCase
     {
         $serverRequest = $this->getServerRequest('1.2.3.4');
 
-        $this->assertEquals('1.2.3.4', (new IpResolver())->resolve($serverRequest));
+        self::assertEquals('1.2.3.4', (new IpResolver())->resolve($serverRequest));
     }
 
     /**
@@ -50,7 +50,7 @@ class IpResolverTest extends TestCase
     {
         $serverRequest = $this->getServerRequest('172.16.1.2');
 
-        $this->assertEquals('172.16.1.2', (new IpResolver())->resolve($serverRequest));
+        self::assertEquals('172.16.1.2', (new IpResolver())->resolve($serverRequest));
     }
 
     /**
@@ -60,7 +60,7 @@ class IpResolverTest extends TestCase
     {
         $serverRequest = $this->getServerRequest('172.16.1.3');
 
-        $this->assertEmpty((new IpResolver())->resolve($serverRequest, true));
+        self::assertEmpty((new IpResolver())->resolve($serverRequest, true));
     }
 
     /**

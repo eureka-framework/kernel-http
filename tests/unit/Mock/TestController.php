@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace Eureka\Kernel\Http\Tests\Mock;
+namespace Eureka\Kernel\Http\Tests\Unit\Mock;
 
 use Eureka\Kernel\Http\Controller\Controller;
 use Eureka\Kernel\Http\Exception\HttpBadRequestException;

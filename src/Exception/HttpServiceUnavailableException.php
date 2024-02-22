@@ -16,6 +16,4 @@ namespace Eureka\Kernel\Http\Exception;
  *
  * @author Romain Cottard
  */
-class HttpServiceUnavailableException extends \RuntimeException
-{
-}
+class HttpServiceUnavailableException extends \RuntimeException {}

@@ -16,6 +16,4 @@ namespace Eureka\Kernel\Http\Exception;
  *
  * @author Romain Cottard
  */
-class HttpConflictException extends \RuntimeException
-{
-}
+class HttpConflictException extends \RuntimeException {}

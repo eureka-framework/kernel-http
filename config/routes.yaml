@@ -1,66 +1,66 @@
 # ===== HOME =====
 test_json:
-    path:       /test/json
-    controller: Eureka\Kernel\Http\Tests\Mock\TestController::testJsonAction
-    methods:    [GET]
-    defaults:
-        rateLimiterQuota: 100
-        rateLimiterTTL:   60
+  path: /test/json
+  controller: Eureka\Kernel\Http\Tests\Unit\Mock\TestController::testJsonAction
+  methods: [ GET ]
+  defaults:
+    rateLimiterQuota: 100
+    rateLimiterTTL: 60
 
 test_json_limited:
-    path:       /test/json/limited
-    controller: Eureka\Kernel\Http\Tests\Mock\TestController::testJsonAction
-    methods:    [GET]
-    defaults:
-        rateLimiterQuota: 1
-        rateLimiterTTL:   100
+  path: /test/json/limited
+  controller: Eureka\Kernel\Http\Tests\Unit\Mock\TestController::testJsonAction
+  methods: [ GET ]
+  defaults:
+    rateLimiterQuota: 1
+    rateLimiterTTL: 100
 
 test_html:
-    path:       /test/html
-    controller: Eureka\Kernel\Http\Tests\Mock\TestController::testHtmlAction
-    methods:    [GET]
-    defaults:
-        someDefault: 'value'
+  path: /test/html
+  controller: Eureka\Kernel\Http\Tests\Unit\Mock\TestController::testHtmlAction
+  methods: [ GET ]
+  defaults:
+    someDefault: 'value'
 
 # ===== ERRORS =====
 test_error_html_internal:
-    path:       /test/error/html/internal-server-error
-    controller: Eureka\Kernel\Http\Tests\Mock\TestController::testInternalServerErrorHtmlAction
-    methods:    [GET]
+  path: /test/error/html/internal-server-error
+  controller: Eureka\Kernel\Http\Tests\Unit\Mock\TestController::testInternalServerErrorHtmlAction
+  methods: [ GET ]
 
 test_error_html_bad_request:
-    path:       /test/error/html/bad-request
-    controller: Eureka\Kernel\Http\Tests\Mock\TestController::testBadRequestErrorHtmlAction
-    methods:    [GET]
+  path: /test/error/html/bad-request
+  controller: Eureka\Kernel\Http\Tests\Unit\Mock\TestController::testBadRequestErrorHtmlAction
+  methods: [ GET ]
 
 test_error_html_unauthorized:
-    path:       /test/error/html/unauthorized
-    controller: Eureka\Kernel\Http\Tests\Mock\TestController::testUnauthorizedErrorHtmlAction
-    methods:    [GET]
+  path: /test/error/html/unauthorized
+  controller: Eureka\Kernel\Http\Tests\Unit\Mock\TestController::testUnauthorizedErrorHtmlAction
+  methods: [ GET ]
 
 test_error_html_forbidden:
-    path:       /test/error/html/forbidden
-    controller: Eureka\Kernel\Http\Tests\Mock\TestController::testForbiddenErrorHtmlAction
-    methods:    [GET]
+  path: /test/error/html/forbidden
+  controller: Eureka\Kernel\Http\Tests\Unit\Mock\TestController::testForbiddenErrorHtmlAction
+  methods: [ GET ]
 
 test_error_html_service_unavailable:
-    path:       /test/error/html/service-unavailable
-    controller: Eureka\Kernel\Http\Tests\Mock\TestController::testServiceUnavailableErrorHtmlAction
-    methods:    [GET]
+  path: /test/error/html/service-unavailable
+  controller: Eureka\Kernel\Http\Tests\Unit\Mock\TestController::testServiceUnavailableErrorHtmlAction
+  methods: [ GET ]
 
 test_error_html_conflict:
-    path:       /test/error/html/conflict
-    controller: Eureka\Kernel\Http\Tests\Mock\TestController::testConflictErrorHtmlAction
-    methods:    [ GET ]
+  path: /test/error/html/conflict
+  controller: Eureka\Kernel\Http\Tests\Unit\Mock\TestController::testConflictErrorHtmlAction
+  methods: [ GET ]
 
 test_error_html_type_error:
-    path:       /test/error/html/type-error
-    controller: Eureka\Kernel\Http\Tests\Mock\TestController::testTypeErrorHtmlAction
-    methods:    [ GET ]
+  path: /test/error/html/type-error
+  controller: Eureka\Kernel\Http\Tests\Unit\Mock\TestController::testTypeErrorHtmlAction
+  methods: [ GET ]
 
 test_error_action_not_exists:
-    path:       /test/error/action-not-exists
-    controller: Eureka\Kernel\Http\Tests\Mock\TestController::testErrorHtmlActionNotExists
-    methods:    [GET]
-    defaults:
-        someDefault: 'value'
+  path: /test/error/action-not-exists
+  controller: Eureka\Kernel\Http\Tests\Unit\Mock\TestController::testErrorHtmlActionNotExists
+  methods: [ GET ]
+  defaults:
+    someDefault: 'value'

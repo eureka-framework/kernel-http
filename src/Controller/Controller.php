@@ -132,9 +132,7 @@ abstract class Controller implements ControllerInterface
      * @param ServerRequestInterface|null $serverRequest
      * @return void
      */
-    public function postAction(?ServerRequestInterface $serverRequest = null): void
-    {
-    }
+    public function postAction(?ServerRequestInterface $serverRequest = null): void {}
 
     /**
      * @return bool
@@ -206,10 +204,9 @@ abstract class Controller implements ControllerInterface
      */
     protected function redirect(string $url, int $status = 301): void
     {
-        $status = (int) $status;
-
         if (!empty($url)) {
-            $protocolVersion = isset($_SERVER['SERVER_PROTOCOL']) ? str_replace('HTTP/', '', $_SERVER['SERVER_PROTOCOL']) : '1.1';
+            $params = $this->getServerRequest()->getServerParams();
+            $protocolVersion = str_replace('HTTP/', '', (string) ($params['SERVER_PROTOCOL'] ?? '1.1'));
 
             header('HTTP/' . $protocolVersion . ' ' . $status . ' Redirect');
             header('Status: ' . $status . ' Redirect');

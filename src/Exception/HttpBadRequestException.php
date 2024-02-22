@@ -16,6 +16,4 @@ namespace Eureka\Kernel\Http\Exception;
  *
  * @author Romain Cottard
  */
-class HttpBadRequestException extends \RuntimeException
-{
-}
+class HttpBadRequestException extends \RuntimeException {}

@@ -16,6 +16,4 @@ namespace Eureka\Kernel\Http\Exception;
  *
  * @author Romain Cottard
  */
-class HttpTooManyRequestsException extends \RuntimeException
-{
-}
+class HttpTooManyRequestsException extends \RuntimeException {}

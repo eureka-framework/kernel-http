@@ -16,6 +16,4 @@ namespace Eureka\Kernel\Http\Exception;
  *
  * @author Romain Cottard
  */
-class HttpInternalServerErrorException extends \RuntimeException
-{
-}
+class HttpInternalServerErrorException extends \RuntimeException {}

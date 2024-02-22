@@ -1,22 +1,22 @@
 parameters:
 
-    #~ Debug
-    kernel.debug: false
+  #~ Debug
+  kernel.debug: false
 
-    #~ Environment
-    kernel.environment: prod
+  #~ Environment
+  kernel.environment: prod
 
-    #~ Errors
-    kernel.error.display: 'false'
-    kernel.error.reporting: !php/const E_ALL
+  #~ Errors
+  kernel.error.display: 'false'
+  kernel.error.reporting: !php/const E_ALL
 
-    #~ Directories
-    kernel.directory.root:   '..' # Overridden in Kernel class, but define here as helper
-    kernel.directory.cache:  '%kernel.directory.root%/var/cache'
-    kernel.directory.log:    '%kernel.directory.root%/var/log'
-    kernel.directory.config: '%kernel.directory.root%/config'
-    kernel.directory.vendor: '%kernel.directory.root%/vendor'
+  #~ Directories
+  kernel.directory.root: '..' # Overridden in Kernel class, but define here as helper
+  kernel.directory.cache: '%kernel.directory.root%/var/cache'
+  kernel.directory.log: '%kernel.directory.root%/var/log'
+  kernel.directory.config: '%kernel.directory.root%/config'
+  kernel.directory.vendor: '%kernel.directory.root%/vendor'
 
-    #~ Compiler passes
-    kernel.compiler_pass:
-        - My\Custom\CompilerPass
+  #~ Compiler passes
+  kernel.compiler_pass:
+    - My\Custom\CompilerPass
