@@ -16,6 +16,4 @@ namespace Eureka\Kernel\Http\Exception;
  *
  * @author Romain Cottard
  */
-class HttpNotFoundException extends \RuntimeException
-{
-}
+class HttpNotFoundException extends \RuntimeException {}

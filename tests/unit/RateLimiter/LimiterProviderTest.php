@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace Eureka\Kernel\Http\Tests\RateLimiter;
+namespace Eureka\Kernel\Http\Tests\Unit\RateLimiter;
 
 use Eureka\Kernel\Http\RateLimiter\Counter\CacheCounter;
 use Eureka\Kernel\Http\RateLimiter\Exception\QuotaExceededException;
@@ -34,7 +34,7 @@ class LimiterProviderTest extends TestCase
         $cacheCounter    = new CacheCounter(new ArrayAdapter(100), 5);
         $limiterProvider = new RouteQuotaLimiterProvider($cacheCounter, 2);
 
-        $this->assertInstanceOf(RouteQuotaLimiterProvider::class, $limiterProvider);
+        self::assertInstanceOf(RouteQuotaLimiterProvider::class, $limiterProvider);
     }
 
     /**
@@ -53,7 +53,7 @@ class LimiterProviderTest extends TestCase
         $limiterProvider->getQuotaLimiter($parameters)->assertQuotaNotReached();
         $limiterProvider->getQuotaLimiter($parameters)->assertQuotaNotReached();
 
-        $this->assertTrue(true);
+        self::assertTrue(true);
     }
 
     /**

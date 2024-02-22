@@ -16,6 +16,4 @@ namespace Eureka\Kernel\Http\Exception;
  *
  * @author Romain Cottard
  */
-class HttpForbiddenException extends \RuntimeException
-{
-}
+class HttpForbiddenException extends \RuntimeException {}

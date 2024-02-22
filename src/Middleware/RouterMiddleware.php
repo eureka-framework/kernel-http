@@ -58,7 +58,7 @@ class RouterMiddleware implements MiddlewareInterface
         //~ Try to match url
         try {
             $this->router->setContext($this->getRequestContext($request));
-            $route = $this->router->match((string) $request->getUri()->getPath());
+            $route = $this->router->match($request->getUri()->getPath());
         } catch (ResourceNotFoundException | RouteNotFoundException $exception) {
             throw new HttpNotFoundException($exception->getMessage(), 900, $exception);
         } catch (MethodNotAllowedException $exception) {

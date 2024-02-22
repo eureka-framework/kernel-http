@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace Eureka\Kernel\Http\Tests\RateLimiter;
+namespace Eureka\Kernel\Http\Tests\Unit\RateLimiter;
 
 use Eureka\Kernel\Http\RateLimiter\Counter\CacheCounter;
 use PHPUnit\Framework\TestCase;
@@ -33,7 +33,7 @@ class CacheCounterTest extends TestCase
     {
         $cacheCounter = new CacheCounter(new ArrayAdapter(100), 5);
 
-        $this->assertInstanceOf(CacheCounter::class, $cacheCounter);
+        self::assertInstanceOf(CacheCounter::class, $cacheCounter);
     }
 
     /**
@@ -45,7 +45,7 @@ class CacheCounterTest extends TestCase
         $cacheCounter->increment(self::COUNTER_ID, 1);
         $cacheCounter->increment(self::COUNTER_ID, 1);
 
-        $this->assertEquals(2, $cacheCounter->current(self::COUNTER_ID));
+        self::assertEquals(2, $cacheCounter->current(self::COUNTER_ID));
     }
 
     /**
@@ -59,7 +59,7 @@ class CacheCounterTest extends TestCase
         sleep(2);
         $cacheCounter->increment(self::COUNTER_ID, 1);
 
-        $this->assertEquals(1, $cacheCounter->current(self::COUNTER_ID));
+        self::assertEquals(1, $cacheCounter->current(self::COUNTER_ID));
     }
 
     /**
@@ -73,7 +73,7 @@ class CacheCounterTest extends TestCase
         $cacheCounter->increment(self::COUNTER_ID, 1);
         sleep(2);
 
-        $this->assertEquals(0, $cacheCounter->current(self::COUNTER_ID));
+        self::assertEquals(0, $cacheCounter->current(self::COUNTER_ID));
     }
 
     /**
@@ -86,11 +86,11 @@ class CacheCounterTest extends TestCase
         $cacheCounter->increment(self::COUNTER_ID, 1);
         $cacheCounter->increment(self::COUNTER_ID, 1);
 
-        $this->assertEquals(2, $cacheCounter->current(self::COUNTER_ID));
+        self::assertEquals(2, $cacheCounter->current(self::COUNTER_ID));
 
         $cacheCounter->delete(self::COUNTER_ID);
 
-        $this->assertEquals(0, $cacheCounter->current(self::COUNTER_ID));
+        self::assertEquals(0, $cacheCounter->current(self::COUNTER_ID));
     }
 
     /**
@@ -100,6 +100,6 @@ class CacheCounterTest extends TestCase
     {
         $cacheCounter = new CacheCounter(new ArrayAdapter(100), 10);
 
-        $this->assertEquals(10, $cacheCounter->getTTL());
+        self::assertEquals(10, $cacheCounter->getTTL());
     }
 }

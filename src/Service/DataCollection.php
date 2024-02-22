@@ -13,7 +13,7 @@ namespace Eureka\Kernel\Http\Service;
 
 /**
  * Data Collection class.
- * @implements \Iterator<string|int|float|bool|null>
+ * @implements \Iterator<mixed>
  *
  * @author Romain Cottard
  */
@@ -54,7 +54,7 @@ class DataCollection implements \Iterator
      * @param mixed $value
      * @return $this
      */
-    public function add(string $key, $value): self
+    public function add(string $key, mixed $value): self
     {
         $this->collection[$key]       = $value;
         $this->indices[$this->length] = $key;
@@ -78,8 +78,8 @@ class DataCollection implements \Iterator
      *
      * @return mixed
      */
-    #[\ReturnTypeWillChange]
-    public function current()
+
+    public function current(): mixed
     {
         return $this->collection[$this->indices[$this->index]];
     }
@@ -131,7 +131,7 @@ class DataCollection implements \Iterator
      */
     public function valid(): bool
     {
-        return ($this->index < $this->length);
+        return $this->index < $this->length;
     }
 
     /**

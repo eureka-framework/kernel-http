@@ -1,5 +1,12 @@
+includes:
+  - ./vendor/phpstan/phpstan-phpunit/extension.neon
+  - ./vendor/phpstan/phpstan-phpunit/rules.neon
+  - ./vendor/phpstan/phpstan-strict-rules/rules.neon
+  - ./vendor/phpstan/phpstan/conf/bleedingEdge.neon
+
 parameters:
-  phpVersion: 70400 # PHP 7.4 - Current minimal version supported
+  #~ Global conf
+  phpVersion: 80100
   level: max
   paths:
     - ./src
@@ -8,4 +15,16 @@ parameters:
   bootstrapFiles:
     - ./vendor/autoload.php
 
-  ignoreErrors: []
+  #~ Rules
+  treatPhpDocTypesAsCertain: false
+  checkAlwaysTrueInstanceof: false
+  strictRules:
+    noVariableVariables: false
+
+  #~ Errors
+  ignoreErrors:
+    - '`Construct empty\(\) is not allowed. Use more strict comparison.`' # Globally used in conscientious way
+    - message: '`Call to (static )?method PHPUnit\\Framework\\Assert::assert.+ will always evaluate to true`'
+      path:    ./tests/unit/
+    - message: '`Strict comparison using === between array and false will always evaluate to false`'
+      path:    ./src/Application/Application.php

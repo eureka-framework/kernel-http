@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace Eureka\Kernel\Http\Tests;
+namespace Eureka\Kernel\Http\Tests\Unit;
 
 use Eureka\Kernel\Http\Application\Application;
 use Eureka\Kernel\Http\Application\ApplicationInterface;
@@ -36,7 +36,7 @@ class ApplicationTest extends TestCase
      */
     public function testCanInstantiateApplication(): void
     {
-        $this->assertInstanceOf(ApplicationInterface::class, $this->getApplication());
+        self::assertInstanceOf(ApplicationInterface::class, $this->getApplication());
     }
 
     /**
@@ -54,7 +54,7 @@ class ApplicationTest extends TestCase
         $application->send($application->run());
         $output = ob_get_clean();
 
-        $this->assertSame('"ok"', $output);
+        self::assertSame('"ok"', $output);
     }
 
     /**
@@ -72,7 +72,7 @@ class ApplicationTest extends TestCase
         $application->send($application->run());
         $output = ob_get_clean();
 
-        $this->assertSame('ok', $output);
+        self::assertSame('ok', $output);
     }
 
     /**
@@ -91,7 +91,7 @@ class ApplicationTest extends TestCase
         $output = ob_get_clean();
 
         $expected = "<pre>exception[Eureka\Kernel\Http\Exception\HttpNotFoundException]: \nNo routes found for \"/test/error/not-found\".\n\n</pre>";
-        $this->assertEquals($expected, $output);
+        self::assertEquals($expected, $output);
     }
 
     /**
@@ -109,14 +109,14 @@ class ApplicationTest extends TestCase
         $application->send($application->run());
         $output = ob_get_clean();
 
-        $this->assertSame('"ok"', $output);
+        self::assertSame('"ok"', $output);
 
         ob_start();
         $application->send($application->run());
         $output = ob_get_clean();
 
         $expected = "<pre>exception[" . HttpTooManyRequestsException::class . "]: \nToo Many Requests\n\n</pre>";
-        $this->assertEquals($expected, $output);
+        self::assertEquals($expected, $output);
     }
 
     /**
@@ -136,7 +136,7 @@ class ApplicationTest extends TestCase
         $output = ob_get_clean();
 
         $expected = "<pre>exception[Eureka\Kernel\Http\Exception\HttpMethodNotAllowedException]: \nAllowed method(s): GET\n\n</pre>";
-        $this->assertEquals($expected, $output);
+        self::assertEquals($expected, $output);
     }
 
     /**
@@ -161,7 +161,7 @@ class ApplicationTest extends TestCase
         $output = ob_get_clean();
 
         $expected = "<pre>exception[${exceptionClass}]: \nthrow an error (html)\n\n</pre>";
-        $this->assertEquals($expected, $output);
+        self::assertEquals($expected, $output);
     }
 
     /**
@@ -184,8 +184,8 @@ class ApplicationTest extends TestCase
         $application->send($application->run());
         $output = ob_get_clean();
 
-        $expected = "<pre>exception[DomainException]: \nAction controller does not exists! (Eureka\Kernel\Http\Tests\Mock\TestController::testErrorHtmlActionNotExists\n\n</pre>";
-        $this->assertEquals($expected, $output);
+        $expected = "<pre>exception[DomainException]: \nAction controller does not exists! (Eureka\Kernel\Http\Tests\Unit\Mock\TestController::testErrorHtmlActionNotExists\n\n</pre>";
+        self::assertEquals($expected, $output);
     }
 
     /**
@@ -194,7 +194,7 @@ class ApplicationTest extends TestCase
      */
     private function getApplication(): ApplicationInterface
     {
-        $root  = (string) realpath(__DIR__ . '/..');
+        $root  = (string) realpath(__DIR__ . '/../..');
         $env   = 'dev';
         $debug = true;
 
@@ -204,7 +204,7 @@ class ApplicationTest extends TestCase
     /**
      * @return array<string,string[]>
      */
-    public function uriExceptionDataProvider(): array
+    public static function uriExceptionDataProvider(): array
     {
         return [
             'BadRequest' => [

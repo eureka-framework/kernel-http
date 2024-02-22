@@ -1,0 +1,5 @@
+{
+    "symbol-whitelist": [
+        "apache_request_headers"
+    ]
+}

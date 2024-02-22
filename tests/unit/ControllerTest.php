@@ -9,11 +9,11 @@
 
 declare(strict_types=1);
 
-namespace Eureka\Kernel\Http\Tests;
+namespace Eureka\Kernel\Http\Tests\Unit;
 
 use Eureka\Kernel\Http\Controller\ControllerInterface;
 use Eureka\Kernel\Http\Kernel;
-use Eureka\Kernel\Http\Tests\Mock\TestController;
+use Eureka\Kernel\Http\Tests\Unit\Mock\TestController;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 
@@ -30,7 +30,7 @@ class ControllerTest extends TestCase
      */
     public function testKernelCanAutowireAController(): void
     {
-        $this->assertInstanceOf(ControllerInterface::class, $this->getTestController());
+        self::assertInstanceOf(ControllerInterface::class, $this->getTestController());
     }
 
     /**
@@ -41,7 +41,7 @@ class ControllerTest extends TestCase
     {
         $controller = $this->getTestController();
 
-        $this->assertTrue($controller->assertHasAllFactories());
+        self::assertTrue($controller->assertHasAllFactories());
     }
 
     /**
@@ -52,7 +52,7 @@ class ControllerTest extends TestCase
     {
         $controller = $this->getTestController();
 
-        $this->assertTrue($controller->assertHasLogger());
+        self::assertTrue($controller->assertHasLogger());
     }
 
     /**
@@ -63,7 +63,7 @@ class ControllerTest extends TestCase
     {
         $controller = $this->getTestController();
 
-        $this->assertTrue($controller->assertHasRoutingHelperAvailable());
+        self::assertTrue($controller->assertHasRoutingHelperAvailable());
     }
 
     /**
@@ -86,7 +86,7 @@ class ControllerTest extends TestCase
             ->withAddedHeader('Accept', 'application/json')
         ;
 
-        $this->assertTrue($controller->assertHasServerRequestHelperAvailable($serverRequest));
+        self::assertTrue($controller->assertHasServerRequestHelperAvailable($serverRequest));
     }
 
     /**
@@ -98,7 +98,7 @@ class ControllerTest extends TestCase
         $controller = $this->getTestController();
         $controller->setEnvironment('dev');
 
-        $this->assertTrue($controller->assertHasPropertiesCorrectlySet());
+        self::assertTrue($controller->assertHasPropertiesCorrectlySet());
     }
 
     /**
@@ -113,7 +113,7 @@ class ControllerTest extends TestCase
         $serverRequestFactory = $this->getKernel()->getContainer()->get('server_request_factory');
         $serverRequest        = $serverRequestFactory->createServerRequest('POST', '/test/json', $_SERVER);
 
-        $this->assertTrue($controller->assertIsNotJsonNorAjaxRequest($serverRequest));
+        self::assertTrue($controller->assertIsNotJsonNorAjaxRequest($serverRequest));
     }
 
     /**
@@ -122,7 +122,7 @@ class ControllerTest extends TestCase
      */
     private function getTestController(): TestController
     {
-        $controller = $this->getKernel()->getContainer()->get('Eureka\Kernel\Http\Tests\Mock\TestController');
+        $controller = $this->getKernel()->getContainer()->get('Eureka\Kernel\Http\Tests\Unit\Mock\TestController');
 
         if (!($controller instanceof TestController)) {
             throw new \LogicException();
@@ -137,7 +137,7 @@ class ControllerTest extends TestCase
      */
     private function getKernel(): Kernel
     {
-        $root  = (string) realpath(__DIR__ . '/..');
+        $root  = (string) realpath(__DIR__ . '/../..');
 
         //~ Overridden by conf
         $env   = 'dev';
