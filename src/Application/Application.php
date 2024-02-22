@@ -301,7 +301,7 @@ class Application implements ApplicationInterface
         $requestBody = \file_get_contents('php://input');
         try {
             $parsedBody  = !empty($requestBody) ? json_decode($requestBody, true, 512, JSON_THROW_ON_ERROR) : [];
-        // @codeCoverageIgnoreStart
+            // @codeCoverageIgnoreStart
         } catch (\JsonException) {
             $parsedBody = [];
         }
