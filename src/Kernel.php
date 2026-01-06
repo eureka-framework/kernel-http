@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace Eureka\Kernel\Http;
 
+use Eureka\Kernel\Http\Exception\KernelException;
 use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Config\Loader\DelegatingLoader;
@@ -288,11 +289,11 @@ class Kernel
             if (!\is_dir($dir)) {
                 // @codeCoverageIgnoreStart
                 if (false === \mkdir($dir, 0777, true) && !\is_dir($dir)) {
-                    throw new \RuntimeException(\sprintf("Unable to create the %s directory (%s)\n", $name, $dir));
+                    throw new KernelException(\sprintf("Unable to create the %s directory (%s)\n", $name, $dir));
                 }
                 // @codeCoverageIgnoreEnd
             } elseif (!\is_writable($dir)) {
-                throw new \RuntimeException(\sprintf("Unable to write in the %s directory (%s)\n", $name, $dir)); // @codeCoverageIgnore
+                throw new KernelException(\sprintf("Unable to write in the %s directory (%s)\n", $name, $dir)); // @codeCoverageIgnore
             }
         }
 
