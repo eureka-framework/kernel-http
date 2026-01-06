@@ -22,6 +22,18 @@ test_html:
   defaults:
     someDefault: 'value'
 
+test_url_with_param:
+  path: /test/entities/{id}/{title}
+  controller: Eureka\Kernel\Http\Tests\Unit\Mock\TestController::testUrlAction
+  methods: [ GET ]
+  defaults:
+    someString: 'value'
+    someBool:   true
+    someInt:    42
+  requirements:
+    id:    '\d+'
+    title: '[a-zA-Z-]+'
+
 # ===== ERRORS =====
 test_error_html_internal:
   path: /test/error/html/internal-server-error

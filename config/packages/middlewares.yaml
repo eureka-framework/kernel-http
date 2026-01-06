@@ -1,0 +1,23 @@
+parameters:
+
+  # app.middleware Name is important, used by app to get list of middlewares
+  # order is important, as the first is process, then the following, etc.
+  app.middleware:
+    error:      'Eureka\Kernel\Http\Middleware\ErrorMiddleware'
+    router:     'Eureka\Kernel\Http\Middleware\RouterMiddleware'
+    logger:     'Eureka\Kernel\Http\Middleware\ResponseTimeLoggerMiddleware'
+    quota:      'Eureka\Kernel\Http\Middleware\RateLimiterMiddleware'
+    controller: 'Eureka\Kernel\Http\Middleware\ControllerMiddleware'
+
+services:
+  _defaults:
+    autowire: true
+    public:   true # Must be true, because Application use container to retrieve each middleware and assign them to handler
+    bind:
+      $applicationName: '%app.name%'
+      $logger: '@logger'
+      $cache:  '@cache'
+
+  #~ Global Kernel Services Middleware
+  Eureka\Kernel\Http\Middleware\:
+    resource: '../../src/Middleware'

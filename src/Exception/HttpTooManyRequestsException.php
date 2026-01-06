@@ -11,9 +11,4 @@ declare(strict_types=1);
 
 namespace Eureka\Kernel\Http\Exception;
 
-/**
- * Class HttpTooManyRequestsException
- *
- * @author Romain Cottard
- */
 class HttpTooManyRequestsException extends \RuntimeException {}

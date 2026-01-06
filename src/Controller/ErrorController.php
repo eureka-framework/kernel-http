@@ -22,48 +22,21 @@ use Eureka\Kernel\Http\Exception\HttpUnauthorizedException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-/**
- * Controller class
- *
- * @author Romain Cottard
- */
 class ErrorController extends Controller implements ErrorControllerInterface
 {
-    /**
-     * @param ServerRequestInterface $serverRequest
-     * @param \Exception $exception
-     * @return ResponseInterface
-     */
-    public function error(ServerRequestInterface $serverRequest, \Exception $exception): ResponseInterface
+    public function error(ServerRequestInterface $serverRequest, \Throwable $exception): ResponseInterface
     {
-        switch (true) {
-            case $exception instanceof HttpBadRequestException:
-                $httpCode = 400;
-                break;
-            case $exception instanceof HttpUnauthorizedException:
-                $httpCode = 401;
-                break;
-            case $exception instanceof HttpForbiddenException:
-                $httpCode = 403;
-                break;
-            case $exception instanceof HttpNotFoundException:
-                $httpCode = 404;
-                break;
-            case $exception instanceof HttpMethodNotAllowedException:
-                $httpCode = 405;
-                break;
-            case $exception instanceof HttpConflictException:
-                $httpCode = 409;
-                break;
-            case $exception instanceof HttpTooManyRequestsException:
-                $httpCode = 429;
-                break;
-            case $exception instanceof HttpServiceUnavailableException:
-                $httpCode = 503;
-                break;
-            default:
-                $httpCode = 500;
-        }
+        $httpCode = match (true) {
+            $exception instanceof HttpBadRequestException => 400,
+            $exception instanceof HttpUnauthorizedException => 401,
+            $exception instanceof HttpForbiddenException => 403,
+            $exception instanceof HttpNotFoundException => 404,
+            $exception instanceof HttpMethodNotAllowedException => 405,
+            $exception instanceof HttpConflictException => 409,
+            $exception instanceof HttpTooManyRequestsException => 429,
+            $exception instanceof HttpServiceUnavailableException => 503,
+            default => 500,
+        };
 
         if ($this->acceptJsonResponse()) {
             $content = $this->getErrorContentJson($httpCode, $exception); // @codeCoverageIgnore
@@ -74,24 +47,16 @@ class ErrorController extends Controller implements ErrorControllerInterface
         return $this->getResponse($content, $httpCode);
     }
 
-    /**
-     * @param ServerRequestInterface $request
-     * @param \Exception $exception
-     * @return string
-     */
     protected function getErrorContentHtml(ServerRequestInterface $request, \Throwable $exception): string
     {
         return
-            '<pre>exception[' . get_class($exception) . ']: ' . PHP_EOL .
-            $exception->getMessage() . PHP_EOL .
-            ($this->isDebug() ? $exception->getTraceAsString() . PHP_EOL : '') . PHP_EOL .
-            '</pre>';
+            '<pre>exception[' . $exception::class . ']: ' . PHP_EOL
+            . $exception->getMessage() . PHP_EOL
+            . ($this->isDebug() ? $exception->getTraceAsString() . PHP_EOL : '') . PHP_EOL
+            . '</pre>';
     }
 
     /**
-     * @param int $code
-     * @param \Exception $exception
-     * @return string
      * @codeCoverageIgnore
      */
     protected function getErrorContentJson(int $code, \Throwable $exception): string
@@ -100,8 +65,8 @@ class ErrorController extends Controller implements ErrorControllerInterface
         $error = [
             'status' => (string) $code,
             'title'  => self::HTTP_CODE_MESSAGES[$code] ?? 'Unknown',
-            'code'   => !empty($exception->getCode()) ? (string) $exception->getCode() : '99',
-            'detail' => !empty($exception->getMessage()) ? $exception->getMessage() : 'Undefined message',
+            'code'   => $exception->getCode() !== 0 ? (string) $exception->getCode() : '99',
+            'detail' => $exception->getMessage() !== '' ? $exception->getMessage() : 'Undefined message',
         ];
 
         if ($this->isDebug()) {

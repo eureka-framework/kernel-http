@@ -11,62 +11,68 @@ declare(strict_types=1);
 
 namespace Eureka\Kernel\Http\Middleware;
 
+use Eureka\Kernel\Http\Exception\HttpInternalServerErrorException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Routing\Route;
 
-/**
- * Class ResponseTimeLoggerMiddleware
- *
- * @author Pierre-Olivier Dézard
- */
-class ResponseTimeLoggerMiddleware implements MiddlewareInterface
+readonly class ResponseTimeLoggerMiddleware implements MiddlewareInterface
 {
-    private LoggerInterface $logger;
-    private string $applicationName;
-
-    /**
-     * ResponseTimeLoggerMiddleWare constructor.
-     *
-     * @param LoggerInterface $logger
-     * @param string $applicationName
-     */
     public function __construct(
-        LoggerInterface $logger,
-        string $applicationName
-    ) {
-        $this->logger          = $logger;
-        $this->applicationName = $applicationName;
-    }
+        private LoggerInterface $logger,
+        private string $applicationName,
+    ) {}
 
     /**
-     * @param ServerRequestInterface $request
-     * @param RequestHandlerInterface $handler
-     * @return ResponseInterface
+     * @throws \Throwable
      */
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    public function process(ServerRequestInterface $serverRequest, RequestHandlerInterface $handler): ResponseInterface
     {
         $time = -microtime(true);
-        $response = $handler->handle($request);
-        $time += microtime(true);
-        $time = (int) ($time * 1000);
+        try {
+            $response = $handler->handle($serverRequest);
+            $httpCode = $response->getStatusCode();
+        } catch (\Throwable $exception) {
+            $httpCode = $exception->getCode() > 599 ? 500 : $exception->getCode();
+        } finally {
+            $time += microtime(true);
+            $time = (int) ($time * 1000);
 
-        $page = $request->getUri()->getPath();
+            $page = $serverRequest->getUri()->getPath();
+            $queryParams = $serverRequest->getQueryParams();
 
-        //In case of a Redirect Response, we don't log the response time because of RouterMiddleware exit
-        $this->logger->info(
-            $page . ' took ' . $time . 'ms to respond',
-            [
-                'type' => $this->applicationName . '.page.response_time',
-                'application' => $this->applicationName,
-                'page' => $page,
-                'counters' => [
-                    'page_time_ms' => $time,
+            /** @var Route|null $route */
+            $route = $serverRequest->getAttribute('routeInstance');
+
+            //In case of a Redirect Response, we don't log the response time because of RouterMiddleware exit
+            $this->logger->info(
+                $page . ' took ' . $time . 'ms to respond',
+                [
+                    'type'        => $this->applicationName . '.page.response_time',
+                    'application' => $this->applicationName,
+                    'path'        => $page,
+                    'route'       => $route?->getPath() ?? '-',
+                    'queryParams' => $queryParams,
+                    'httpCode'    => $httpCode,
+                    'counters'    => [
+                        'page_time_ms' => $time,
+                    ],
                 ],
-            ]
-        );
+            );
+
+            //~ Rethrow exception when finally come after a catch of an exception
+            if (isset($exception)) {
+                throw $exception;
+            }
+        }
+
+        if (!isset($response)) {
+            //~ Should not happen
+            throw new HttpInternalServerErrorException('Response not defined!'); // @codeCoverageIgnore
+        }
 
         return $response;
     }

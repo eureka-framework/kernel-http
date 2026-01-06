@@ -11,30 +11,24 @@ declare(strict_types=1);
 
 namespace Eureka\Kernel\Http\Tests\Unit;
 
-use Eureka\Kernel\Http\Controller\ControllerInterface;
 use Eureka\Kernel\Http\Kernel;
 use Eureka\Kernel\Http\Tests\Unit\Mock\TestController;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 
-/**
- * Class ControllerTest
- *
- * @author Romain Cottard
- */
 class ControllerTest extends TestCase
 {
     /**
-     * @return void
      * @throws \Exception
      */
     public function testKernelCanAutowireAController(): void
     {
-        self::assertInstanceOf(ControllerInterface::class, $this->getTestController());
+        $this->getTestController();
+
+        $this->expectNotToPerformAssertions();
     }
 
     /**
-     * @return void
      * @throws \Exception
      */
     public function testControllerTraitHttpFactories(): void
@@ -45,7 +39,6 @@ class ControllerTest extends TestCase
     }
 
     /**
-     * @return void
      * @throws \Exception
      */
     public function testControllerHasLogger(): void
@@ -56,7 +49,6 @@ class ControllerTest extends TestCase
     }
 
     /**
-     * @return void
      * @throws \Exception
      */
     public function testControllerHasRoutingHelperAvailable(): void
@@ -67,7 +59,6 @@ class ControllerTest extends TestCase
     }
 
     /**
-     * @return void
      * @throws \Exception
      */
     public function testControllerHasServerRequestHelperAvailable(): void
@@ -87,10 +78,10 @@ class ControllerTest extends TestCase
         ;
 
         self::assertTrue($controller->assertHasServerRequestHelperAvailable($serverRequest));
+        self::assertTrue($controller->assertIsAjaxRequest($serverRequest));
     }
 
     /**
-     * @return void
      * @throws \Exception
      */
     public function testControllerAbstractMethods(): void
@@ -102,7 +93,6 @@ class ControllerTest extends TestCase
     }
 
     /**
-     * @return void
      * @throws \Exception
      */
     public function testICanCheckWhenRequestIsNotJsonNorAjax(): void
@@ -117,7 +107,6 @@ class ControllerTest extends TestCase
     }
 
     /**
-     * @return TestController
      * @throws \Exception
      */
     private function getTestController(): TestController
@@ -132,7 +121,6 @@ class ControllerTest extends TestCase
     }
 
     /**
-     * @return Kernel
      * @throws \Exception
      */
     private function getKernel(): Kernel

@@ -16,28 +16,12 @@ use PHPUnit\Framework\TestCase;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
-/**
- * Class CacheCounterTest
- *
- * @author Romain Cottard
- */
 class CacheCounterTest extends TestCase
 {
-    /** @var string COUNTER_ID */
-    private const COUNTER_ID = 'counter.id';
+    private const string COUNTER_ID = 'counter.id';
 
     /**
-     * @return void
-     */
-    public function testICanInstantiateCacheCounterClass(): void
-    {
-        $cacheCounter = new CacheCounter(new ArrayAdapter(100), 5);
-
-        self::assertInstanceOf(CacheCounter::class, $cacheCounter);
-    }
-
-    /**
-     * @return void
+     * @throws InvalidArgumentException
      */
     public function testICanAddValueOneTwiceAndGetTwoAsValue(): void
     {
@@ -45,11 +29,10 @@ class CacheCounterTest extends TestCase
         $cacheCounter->increment(self::COUNTER_ID, 1);
         $cacheCounter->increment(self::COUNTER_ID, 1);
 
-        self::assertEquals(2, $cacheCounter->current(self::COUNTER_ID));
+        self::assertSame(2, $cacheCounter->current(self::COUNTER_ID));
     }
 
     /**
-     * @return void
      * @throws InvalidArgumentException
      */
     public function testICanAddValueOneTwiceAndGetOneAsValueWhenFirstElementIsOutOfTTL(): void
@@ -59,11 +42,10 @@ class CacheCounterTest extends TestCase
         sleep(2);
         $cacheCounter->increment(self::COUNTER_ID, 1);
 
-        self::assertEquals(1, $cacheCounter->current(self::COUNTER_ID));
+        self::assertSame(1, $cacheCounter->current(self::COUNTER_ID));
     }
 
     /**
-     * @return void
      * @throws InvalidArgumentException
      */
     public function testICanAddValueOneTwiceAndGetZeroAsValueWhenAllElementsAreOutOfTTL(): void
@@ -73,11 +55,10 @@ class CacheCounterTest extends TestCase
         $cacheCounter->increment(self::COUNTER_ID, 1);
         sleep(2);
 
-        self::assertEquals(0, $cacheCounter->current(self::COUNTER_ID));
+        self::assertSame(0, $cacheCounter->current(self::COUNTER_ID));
     }
 
     /**
-     * @return void
      * @throws InvalidArgumentException
      */
     public function testICanAddValueOneTwiceAndGetZeroAfterDeletionOfCounter(): void
@@ -86,20 +67,17 @@ class CacheCounterTest extends TestCase
         $cacheCounter->increment(self::COUNTER_ID, 1);
         $cacheCounter->increment(self::COUNTER_ID, 1);
 
-        self::assertEquals(2, $cacheCounter->current(self::COUNTER_ID));
+        self::assertSame(2, $cacheCounter->current(self::COUNTER_ID));
 
         $cacheCounter->delete(self::COUNTER_ID);
 
-        self::assertEquals(0, $cacheCounter->current(self::COUNTER_ID));
+        self::assertSame(0, $cacheCounter->current(self::COUNTER_ID));
     }
 
-    /**
-     * @return void
-     */
     public function testICanGetCounterTTLValue(): void
     {
         $cacheCounter = new CacheCounter(new ArrayAdapter(100), 10);
 
-        self::assertEquals(10, $cacheCounter->getTTL());
+        self::assertSame(10, $cacheCounter->getTTL());
     }
 }

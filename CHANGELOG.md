@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.0.0] - 2026-01-06
+[7.0.0]: https://github.com/eureka-framework/kernel-http/compare/6.0.0...7.0.0
+### Added
+- Add PHP 8.3+ support
+- Add readonly + use promoted properties on lot of classes
+- Now defaults & requirements on route are passed to the controller action as arguments
+### Changed
+- Remove lot useless phpdoc
+- Update Makefile
+- Update CI configs
+- Fix some phpstan errors
+- Update README to add examples configs and more info
+- Some phpdoc improvements
+- Improve Response Time middleware
+- Improve some tests
+### Removed
+- Remove some utilities methods
+- Remove DataCollection class
+
+---
+
 ## [6.0.0] - 2024-02-22
 [6.0.0]: https://github.com/eureka-framework/kernel-http/compare/5.3.0...6.0.0
 ### Added

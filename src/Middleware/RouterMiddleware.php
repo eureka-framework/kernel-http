@@ -24,42 +24,26 @@ use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Router;
 
 /**
- * Class RouterMiddleware
  * Exception Code Range: 900-909
- *
- * @author Romain Cottard
  */
-class RouterMiddleware implements MiddlewareInterface
+readonly class RouterMiddleware implements MiddlewareInterface
 {
-    /** @var Router $router */
-    protected Router $router;
-
-    /**
-     * RouterMiddleware constructor.
-     *
-     * @param Router $router
-     */
-    public function __construct(Router $router)
-    {
-        $this->router = $router;
-    }
+    public function __construct(private Router $router) {}
 
     /**
      * Process an incoming server request and return a response, optionally delegating
      * response creation to a handler.
      *
-     * @param ServerRequestInterface $request
-     * @param RequestHandlerInterface $handler
-     * @return ResponseInterface
      * @throws HttpNotFoundException
      */
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    public function process(ServerRequestInterface $serverRequest, RequestHandlerInterface $handler): ResponseInterface
     {
         //~ Try to match url
         try {
-            $this->router->setContext($this->getRequestContext($request));
-            $route = $this->router->match($request->getUri()->getPath());
-        } catch (ResourceNotFoundException | RouteNotFoundException $exception) {
+            $this->router->setContext($this->getRequestContext($serverRequest));
+            /** @var array<string, string|int|float|bool|null> $route */
+            $route = $this->router->match($serverRequest->getUri()->getPath());
+        } catch (ResourceNotFoundException|RouteNotFoundException $exception) {
             throw new HttpNotFoundException($exception->getMessage(), 900, $exception);
         } catch (MethodNotAllowedException $exception) {
             $message = 'Allowed method(s): ' . implode(',', $exception->getAllowedMethods());
@@ -67,7 +51,7 @@ class RouterMiddleware implements MiddlewareInterface
         }
 
         //~ Add route param to request
-        $serverRequest = $request->withAttribute('route', $route);
+        $serverRequest = $serverRequest->withAttribute('route', $route);
 
         //~ Add route element to requests
         foreach ($route as $key => $value) {
@@ -78,13 +62,13 @@ class RouterMiddleware implements MiddlewareInterface
             $serverRequest = $serverRequest->withAttribute($key, $value);
         }
 
+        //~ Get symfony route instance & add it to the request
+        $routeInstance = $this->router->getRouteCollection()->get((string) $route['_route']); // get full route info
+        $serverRequest = $serverRequest->withAttribute('routeInstance', $routeInstance);
+
         return $handler->handle($serverRequest);
     }
 
-    /**
-     * @param ServerRequestInterface $serverRequest
-     * @return RequestContext
-     */
     private function getRequestContext(ServerRequestInterface $serverRequest): RequestContext
     {
         $uri = $serverRequest->getUri();
@@ -97,7 +81,7 @@ class RouterMiddleware implements MiddlewareInterface
             80,
             443,
             $uri->getPath(),
-            $uri->getQuery()
+            $uri->getQuery(),
         );
     }
 }

@@ -17,29 +17,10 @@ use Eureka\Kernel\Http\RateLimiter\LimiterProvider\RouteQuotaLimiterProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
-/**
- * Class LimiterProviderTest
- *
- * @author Romain Cottard
- */
 class LimiterProviderTest extends TestCase
 {
-    private const LOCAL_IP   = '127.0.0.1';
+    private const string LOCAL_IP   = '127.0.0.1';
 
-    /**
-     * @return void
-     */
-    public function testICanInstantiateRouteQuotaLimiterProviderClass(): void
-    {
-        $cacheCounter    = new CacheCounter(new ArrayAdapter(100), 5);
-        $limiterProvider = new RouteQuotaLimiterProvider($cacheCounter, 2);
-
-        self::assertInstanceOf(RouteQuotaLimiterProvider::class, $limiterProvider);
-    }
-
-    /**
-     * @return void
-     */
     public function testICanAssertTwiceQuotaIsNotReachedWithTwoAsQuota(): void
     {
         $cacheCounter    = new CacheCounter(new ArrayAdapter(100), 5);
@@ -53,12 +34,9 @@ class LimiterProviderTest extends TestCase
         $limiterProvider->getQuotaLimiter($parameters)->assertQuotaNotReached();
         $limiterProvider->getQuotaLimiter($parameters)->assertQuotaNotReached();
 
-        self::assertTrue(true);
+        $this->expectNotToPerformAssertions();
     }
 
-    /**
-     * @return void
-     */
     public function testAnExceptionIsThrownWhenTryToAssertTriceWithTwoAsQuota(): void
     {
         $cacheCounter    = new CacheCounter(new ArrayAdapter(100), 5);
@@ -77,9 +55,6 @@ class LimiterProviderTest extends TestCase
         $limiterProvider->getQuotaLimiter($parameters)->assertQuotaNotReached();
     }
 
-    /**
-     * @return void
-     */
     public function testAnExceptionIsThrownWhenTryToGetQuotaLimiterWithoutRequiredRouteParameters(): void
     {
         $cacheCounter    = new CacheCounter(new ArrayAdapter(100), 5);
@@ -95,9 +70,6 @@ class LimiterProviderTest extends TestCase
         $limiterProvider->getQuotaLimiter($parameters);
     }
 
-    /**
-     * @return void
-     */
     public function testAnExceptionIsThrownWhenTryToGetQuotaLimiterWithoutRequiredIpParameters(): void
     {
         $cacheCounter    = new CacheCounter(new ArrayAdapter(100), 5);

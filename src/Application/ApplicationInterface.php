@@ -25,7 +25,7 @@ interface ApplicationInterface
      * @param ServerRequestInterface|null $serverRequest
      * @return ResponseInterface
      */
-    public function run(ServerRequestInterface $serverRequest = null): ResponseInterface;
+    public function run(?ServerRequestInterface $serverRequest = null): ResponseInterface;
 
     /**
      * Send response to client

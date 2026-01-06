@@ -13,17 +13,11 @@ namespace Eureka\Kernel\Http\RateLimiter\Limiter;
 
 use Eureka\Kernel\Http\RateLimiter\Exception\QuotaExceededException;
 
-/**
- * Interface LimiterInterface
- *
- * @author Romain Cottard
- */
 interface LimiterInterface
 {
     /**
      * Assert usage is valid or throws exception
      *
-     * @return void
      * @throws QuotaExceededException
      */
     public function assertQuotaNotReached(): void;

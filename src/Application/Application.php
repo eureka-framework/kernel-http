@@ -25,9 +25,6 @@ use Psr\Http\Message\UriInterface;
 use Psr\Http\Server\MiddlewareInterface;
 
 /**
- * Application class
- *
- * @author Romain Cottard
  * @phpstan-type ServerParams array{
  *     REQUEST_METHOD?: string,
  *     HTTPS?: string,
@@ -42,23 +39,10 @@ class Application implements ApplicationInterface
 {
     /** @var MiddlewareInterface[] $middleware */
     protected array $middleware = [];
-    protected Kernel $kernel;
 
-    /**
-     * Application constructor.
-     *
-     * @param Kernel $kernel
-     */
-    public function __construct(Kernel $kernel)
-    {
-        $this->kernel = $kernel;
-    }
+    public function __construct(protected readonly Kernel $kernel) {}
 
-    /**
-     * @param ServerRequestInterface|null $serverRequest
-     * @return ResponseInterface
-     */
-    public function run(ServerRequestInterface $serverRequest = null): ResponseInterface
+    public function run(?ServerRequestInterface $serverRequest = null): ResponseInterface
     {
         try {
             $serverRequest = $serverRequest ?? $this->createServerRequest();
@@ -69,7 +53,7 @@ class Application implements ApplicationInterface
             //~ Get response through middlewares
             $handler  = new Http\Server\RequestHandler($response, $this->middleware);
             $response = $handler->handle($serverRequest);
-        } catch (\Exception $exception) { // @codeCoverageIgnore
+        } catch (\Throwable $exception) { // @codeCoverageIgnore
             // @codeCoverageIgnoreStart
             //~ Catch not handled exception - Should not happen
             $serverRequest = $serverRequest ?? $this->createServerRequest(false);
@@ -87,7 +71,7 @@ class Application implements ApplicationInterface
             /** @var bool $debug */
             $debug = $this->kernel->getContainer()->getParameter('kernel.debug');
 
-            $controller->setEnvironment((string) $env, (bool) $debug);
+            $controller->setEnvironment($env, $debug);
 
             $response = $controller->error($serverRequest, $exception);
             // @codeCoverageIgnoreEnd
@@ -96,10 +80,6 @@ class Application implements ApplicationInterface
         return $response;
     }
 
-    /**
-     * @param ResponseInterface $response
-     * @return $this
-     */
     public function send(ResponseInterface $response): ApplicationInterface
     {
         //~ Write Headers
@@ -110,7 +90,7 @@ class Application implements ApplicationInterface
                 'HTTP/%s %s %s',
                 $response->getProtocolVersion(),
                 $response->getStatusCode(),
-                $response->getReasonPhrase()
+                $response->getReasonPhrase(),
             );
             \header($header, true, $response->getStatusCode());
 
@@ -129,11 +109,6 @@ class Application implements ApplicationInterface
         return $this;
     }
 
-    /**
-     * Load middleware
-     *
-     * @return void
-     */
     private function loadMiddleware(): void
     {
         $this->middleware = [];
@@ -149,10 +124,6 @@ class Application implements ApplicationInterface
         }
     }
 
-    /**
-     * @param  ServerRequestInterface $serverRequest
-     * @return ResponseInterface
-     */
     private function createResponse(ServerRequestInterface $serverRequest): ResponseInterface
     {
         /** @var ResponseFactoryInterface $responseFactory */
@@ -162,8 +133,8 @@ class Application implements ApplicationInterface
 
         //~ Automatic add "application/json" to response header when client accept "json" in response.
         if (
-            $serverRequest->hasHeader('Accept') &&
-            \in_array('application/json', $serverRequest->getHeader('Accept'), true) // @codeCoverageIgnore
+            $serverRequest->hasHeader('Accept')
+            && \in_array('application/json', $serverRequest->getHeader('Accept'), true) // @codeCoverageIgnore
         ) {
             $response = $response->withAddedHeader('Content-Type', 'application/json'); // @codeCoverageIgnore
         }
@@ -171,17 +142,13 @@ class Application implements ApplicationInterface
         return $response;
     }
 
-    /**
-     * @param bool $withBody
-     * @return ServerRequestInterface
-     */
     private function createServerRequest(bool $withBody = true): ServerRequestInterface
     {
         $serverRequestFactory = $this->getServerRequestFactory();
 
         /** @var ServerParams $params */
         $params = $_SERVER;
-        $method = !empty($params['REQUEST_METHOD']) ? $params['REQUEST_METHOD'] : 'GET';
+        $method = ($params['REQUEST_METHOD'] ?? '') !== '' ? $params['REQUEST_METHOD'] : 'GET';
 
         //~ Create server request
         $serverRequest = $serverRequestFactory->createServerRequest($method, $this->createUri(), $_SERVER);
@@ -216,9 +183,6 @@ class Application implements ApplicationInterface
         return $serverRequest;
     }
 
-    /**
-     * @return UriInterface
-     */
     private function createUri(): UriInterface
     {
         $uriFactory = $this->getUriFactory();
@@ -257,19 +221,15 @@ class Application implements ApplicationInterface
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, string[]>
      *
      * @codeCoverageIgnore
      */
     private function getHeaders(): array
     {
         $headers = [];
-        if (function_exists('apache_request_headers')) {
+        if (\function_exists('apache_request_headers')) {
             $headers = \apache_request_headers();
-
-            if ($headers === false) {
-                $headers = [];
-            }
         }
 
         foreach ($headers as $name => $header) {
@@ -280,6 +240,7 @@ class Application implements ApplicationInterface
             $headers[$name] = $header;
         }
 
+        /** @var array<string, string[]> $headers */
         return $headers;
     }
 
@@ -299,15 +260,16 @@ class Application implements ApplicationInterface
         }
 
         $requestBody = \file_get_contents('php://input');
+        $isEmptyBody = $requestBody === false || $requestBody === '';
         try {
-            $parsedBody  = !empty($requestBody) ? json_decode($requestBody, true, 512, JSON_THROW_ON_ERROR) : [];
+            $parsedBody  = !$isEmptyBody ? \json_decode($requestBody, true, 512, \JSON_THROW_ON_ERROR) : [];
             // @codeCoverageIgnoreStart
         } catch (\JsonException) {
             $parsedBody = [];
         }
         // @codeCoverageIgnoreEnd
 
-        if (!empty($requestBody) && empty($parsedBody)) {
+        if (!$isEmptyBody && $parsedBody === []) {
             \parse_str($requestBody, $parsedBody); // @codeCoverageIgnore
         }
 
@@ -317,7 +279,6 @@ class Application implements ApplicationInterface
 
     /**
      * @param array<string> $contentTypes
-     * @return bool
      */
     private function isRequestBodyForm(array $contentTypes): bool
     {
@@ -333,7 +294,6 @@ class Application implements ApplicationInterface
 
     /**
      * @param array<string> $contentTypes
-     * @return bool
      */
     private function isRequestBodyJson(array $contentTypes): bool
     {
@@ -347,44 +307,33 @@ class Application implements ApplicationInterface
         return false;
     }
 
-    /**
-     * @return ResponseFactoryInterface
-     * @codeCoverageIgnore
-     */
     private function getResponseFactory(): ResponseFactoryInterface
     {
         $factory = $this->kernel->getContainer()->get('response_factory');
         if (!($factory instanceof ResponseFactoryInterface)) {
-            throw new \LogicException('Service "response_factory" not a ' . ResponseFactoryInterface::class);
+            throw new \LogicException('Service "response_factory" not a ' . ResponseFactoryInterface::class); // @codeCoverageIgnore
         }
 
         return $factory;
     }
 
-    /**
-     * @return RequestFactoryInterface
-     * @codeCoverageIgnore
-     */
     private function getRequestFactory(): RequestFactoryInterface
     {
         $factory = $this->kernel->getContainer()->get('request_factory');
         if (!($factory instanceof RequestFactoryInterface)) {
-            throw new \LogicException('Service "request_factory" not a ' . RequestFactoryInterface::class);
+            throw new \LogicException('Service "request_factory" not a ' . RequestFactoryInterface::class); // @codeCoverageIgnore
         }
 
         return $factory;
     }
 
-    /**
-     * @return ServerRequestFactoryInterface
-     */
     private function getServerRequestFactory(): ServerRequestFactoryInterface
     {
         $factory = $this->kernel->getContainer()->get('server_request_factory');
         if (!($factory instanceof ServerRequestFactoryInterface)) {
             // @codeCoverageIgnoreStart
             throw new \LogicException(
-                'Service "server_request_factory" not a ' . ServerRequestFactoryInterface::class
+                'Service "server_request_factory" not a ' . ServerRequestFactoryInterface::class,
             );
             // @codeCoverageIgnoreEnd
         }
@@ -392,30 +341,23 @@ class Application implements ApplicationInterface
         return $factory;
     }
 
-    /**
-     * @return StreamFactoryInterface
-     * @codeCoverageIgnore
-     */
     private function getStreamFactory(): StreamFactoryInterface
     {
         $factory = $this->kernel->getContainer()->get('stream_factory');
         if (!($factory instanceof StreamFactoryInterface)) {
-            throw new \LogicException('Service "stream_factory" not a ' . StreamFactoryInterface::class);
+            throw new \LogicException('Service "stream_factory" not a ' . StreamFactoryInterface::class); // @codeCoverageIgnore
         }
 
         return $factory;
     }
 
-    /**
-     * @return UriFactoryInterface
-     */
     private function getUriFactory(): UriFactoryInterface
     {
         $factory = $this->kernel->getContainer()->get('uri_factory');
         if (!($factory instanceof UriFactoryInterface)) {
             // @codeCoverageIgnoreStart
             throw new \LogicException(
-                'Service "uri_factory" not a ' . UriFactoryInterface::class
+                'Service "uri_factory" not a ' . UriFactoryInterface::class,
             );
             // @codeCoverageIgnoreEnd
         }

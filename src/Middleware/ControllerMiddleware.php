@@ -21,44 +21,26 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-/**
- * Class ControllerMiddleware
- *
- * @author Romain Cottard
- */
-class ControllerMiddleware implements MiddlewareInterface
+readonly class ControllerMiddleware implements MiddlewareInterface
 {
-    protected ContainerInterface $container;
-
-    /**
-     * ControllerMiddleware constructor.
-     *
-     * @param ContainerInterface $container
-     */
-    public function __construct(ContainerInterface $container)
-    {
-        $this->container = $container;
-    }
+    public function __construct(private ContainerInterface $container) {}
 
     /**
      * Process an incoming server request and return a response, optionally delegating
      * response creation to a handler.
      *
-     * @param ServerRequestInterface $request
-     * @param RequestHandlerInterface $handler
-     * @return ResponseInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    public function process(ServerRequestInterface $serverRequest, RequestHandlerInterface $handler): ResponseInterface
     {
-        if (null === $request->getAttribute('route')) {
+        if (null === $serverRequest->getAttribute('route')) {
             throw new HttpNotFoundException('Route not defined'); // @codeCoverageIgnore
         }
 
-        $response = $this->handle($request);
+        $response = $this->handle($serverRequest);
 
-        $otherResponse = $handler->handle($request);
+        $otherResponse = $handler->handle($serverRequest);
         $response->getBody()->write($otherResponse->getBody()->getContents());
 
         return $response;
@@ -67,18 +49,13 @@ class ControllerMiddleware implements MiddlewareInterface
     /**
      * Run application middleware.
      *
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    private function handle(ServerRequestInterface $request): ResponseInterface
+    private function handle(ServerRequestInterface $serverRequest): ResponseInterface
     {
         /** @var array<string, string|int|bool|float|bool|null> $route */
-        $route = $request->getAttribute('route') ?? [];
-
-        //~ Remove route from request
-        $request = $request->withoutAttribute('route');
+        $route = $serverRequest->getAttribute('route') ?? [];
 
         [$controllerName, $action] = explode('::', (string) $route['_controller']);
 
@@ -87,21 +64,34 @@ class ControllerMiddleware implements MiddlewareInterface
 
         if (!method_exists($controller, $action)) {
             throw new \DomainException(
-                'Action controller does not exists! (' . get_class($controller) . '::' . $action
+                'Action controller does not exists! (' . get_class($controller) . '::' . $action,
             );
         }
 
-        if ($controller instanceof ControllerInterface) {
-            //~ Set context action
-            $controller->setRoute($route);
-
-            //~ Call controller pre action, action & post action.
-            $controller->preAction($request);
-            $response = $controller->$action($request);
-            $controller->postAction($request);
-        } else {
-            $response = $controller->$action($request); // @codeCoverageIgnore
+        if (!$controller instanceof ControllerInterface) {
+            throw new \DomainException('Controller must implement ControllerInterface'); // @codeCoverageIgnore
         }
+
+        $controllerParameters = [$serverRequest];
+
+        //~ Add route element to controller parameters to pass it directly.
+        // /!\ Params from url are always strings
+        foreach ($route as $key => $value) {
+            if ($key[0] === '_') {
+                continue;
+            }
+
+            $controllerParameters[] = $value;
+        }
+
+        //~ Set context action
+        $controller->setRoute($route);
+
+        //~ Call controller pre action, action & post action.
+        $controller->preAction($serverRequest);
+        /** @var ResponseInterface $response */
+        $response = $controller->$action(...$controllerParameters);
+        $controller->postAction($serverRequest);
 
         return $response;
     }

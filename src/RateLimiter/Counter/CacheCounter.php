@@ -14,36 +14,20 @@ namespace Eureka\Kernel\Http\RateLimiter\Counter;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 
-/**
- * CacheCounter
- *
- * @author Romain Cottard
- */
 class CacheCounter implements CounterInterface
 {
-    private CacheItemPoolInterface $cache;
-    private int $cacheTTL;
     private int $stepTTL;
 
-    /**
-     * CacheCounter constructor.
-     *
-     * @param CacheItemPoolInterface $cache
-     * @param int $cacheTTL Cache Time to live in second
-     */
-    public function __construct(CacheItemPoolInterface $cache, int $cacheTTL)
-    {
-        $this->cache    = $cache;
-        $this->cacheTTL = $cacheTTL;
-        $this->stepTTL  = (int) ceil($cacheTTL / 10);
+    public function __construct(
+        private readonly CacheItemPoolInterface $cache,
+        private readonly int $cacheTTL,
+    ) {
+        $this->stepTTL = (int) ceil($cacheTTL / 10);
     }
 
     /**
      * Increment counter and returns its new value
      *
-     * @param string $id
-     * @param int $value
-     * @return int
      * @throws InvalidArgumentException
      */
     public function increment(string $id, int $value = 1): int
@@ -67,8 +51,6 @@ class CacheCounter implements CounterInterface
     /**
      * Returns current counter value
      *
-     * @param string $id
-     * @return int
      * @throws InvalidArgumentException
      */
     public function current(string $id): int
@@ -87,8 +69,6 @@ class CacheCounter implements CounterInterface
     /**
      * Deletes a counter
      *
-     * @param string $id
-     * @return void
      * @throws InvalidArgumentException
      */
     public function delete(string $id): void
@@ -100,8 +80,6 @@ class CacheCounter implements CounterInterface
 
     /**
      * Get Counter Time to live
-     *
-     * @return int
      */
     public function getTTL(): int
     {
@@ -110,7 +88,7 @@ class CacheCounter implements CounterInterface
 
     /**
      * @param array<int, int> $counter
-     * @return int[]
+     * @return array<int, int>
      */
     private function clean(array $counter): array
     {
@@ -126,8 +104,7 @@ class CacheCounter implements CounterInterface
 
     /**
      * @param array<int, int> $counter
-     * @param int $value
-     * @return int[]
+     * @return array<int, int>
      */
     private function add(array $counter, int $value): array
     {

@@ -11,9 +11,4 @@ declare(strict_types=1);
 
 namespace Eureka\Kernel\Http\Exception;
 
-/**
- * Class HttpConflictException
- *
- * @author Romain Cottard
- */
 class HttpConflictException extends \RuntimeException {}

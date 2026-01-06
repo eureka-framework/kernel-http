@@ -13,11 +13,6 @@ namespace Eureka\Kernel\Http\Traits;
 
 use Symfony\Component\Routing\Router;
 
-/**
- * Trait RouterAwareTrait
- *
- * @author Romain Cottard
- */
 trait RouterAwareTrait
 {
     protected Router $router;
@@ -25,10 +20,6 @@ trait RouterAwareTrait
     /** @var array<string, string|int|bool|float|null> */
     protected array $route = [];
 
-    /**
-     * @param Router $router
-     * @return void
-     */
     public function setRouter(Router $router): void
     {
         $this->router = $router;
@@ -36,16 +27,12 @@ trait RouterAwareTrait
 
     /**
      * @param array<string, string|int|bool|float|null> $route
-     * @return void
      */
     public function setRoute(array $route): void
     {
         $this->route = $route;
     }
 
-    /**
-     * @return Router
-     */
     protected function getRouter(): Router
     {
         return $this->router;
@@ -60,30 +47,22 @@ trait RouterAwareTrait
     }
 
     /**
-     * @param string $routeName
      * @param array<string, string|int|bool|float|bool|null> $params
-     * @return string
      */
     protected function getRouteUri(string $routeName, array $params = []): string
     {
         return $this->router->generate($routeName, $params);
     }
 
-    /**
-     * @param  string $name
-     * @return bool
-     */
     protected function hasParameter(string $name): bool
     {
         return isset($this->route[$name]);
     }
 
     /**
-     * @param string $name
      * @param string|int|bool|float|null $default
-     * @return mixed|null
      */
-    protected function getParameter(string $name, $default = null)
+    protected function getParameter(string $name, mixed $default = null): mixed
     {
         return $this->route[$name] ?? $default;
     }

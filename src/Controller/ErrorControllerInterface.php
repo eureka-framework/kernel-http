@@ -14,17 +14,7 @@ namespace Eureka\Kernel\Http\Controller;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-/**
- * ErrorControllerInterface interface
- *
- * @author Romain Cottard
- */
 interface ErrorControllerInterface extends ControllerInterface
 {
-    /**
-     * @param ServerRequestInterface $serverRequest
-     * @param \Exception $exception
-     * @return ResponseInterface
-     */
-    public function error(ServerRequestInterface $serverRequest, \Exception $exception): ResponseInterface;
+    public function error(ServerRequestInterface $serverRequest, \Throwable $exception): ResponseInterface;
 }
