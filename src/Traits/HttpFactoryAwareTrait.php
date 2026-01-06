@@ -17,11 +17,6 @@ use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
 
-/**
- * Trait HttpFactoryAwareTrait
- *
- * @author Romain Cottard
- */
 trait HttpFactoryAwareTrait
 {
     private UriFactoryInterface $uriFactory;
@@ -30,81 +25,51 @@ trait HttpFactoryAwareTrait
     private ResponseFactoryInterface $responseFactory;
     private StreamFactoryInterface $streamFactory;
 
-    /**
-     * @return UriFactoryInterface
-     */
     public function getUriFactory(): UriFactoryInterface
     {
         return $this->uriFactory;
     }
 
-    /**
-     * @param UriFactoryInterface $uriFactory
-     */
     public function setUriFactory(UriFactoryInterface $uriFactory): void
     {
         $this->uriFactory = $uriFactory;
     }
 
-    /**
-     * @return RequestFactoryInterface
-     */
     public function getRequestFactory(): RequestFactoryInterface
     {
         return $this->requestFactory;
     }
 
-    /**
-     * @param RequestFactoryInterface $requestFactory
-     */
     public function setRequestFactory(RequestFactoryInterface $requestFactory): void
     {
         $this->requestFactory = $requestFactory;
     }
 
-    /**
-     * @return ServerRequestFactoryInterface
-     */
     public function getServerRequestFactory(): ServerRequestFactoryInterface
     {
         return $this->serverRequestFactory;
     }
 
-    /**
-     * @param ServerRequestFactoryInterface $serverRequestFactory
-     */
     public function setServerRequestFactory(ServerRequestFactoryInterface $serverRequestFactory): void
     {
         $this->serverRequestFactory = $serverRequestFactory;
     }
 
-    /**
-     * @return ResponseFactoryInterface
-     */
     public function getResponseFactory(): ResponseFactoryInterface
     {
         return $this->responseFactory;
     }
 
-    /**
-     * @param ResponseFactoryInterface $responseFactory
-     */
     public function setResponseFactory(ResponseFactoryInterface $responseFactory): void
     {
         $this->responseFactory = $responseFactory;
     }
 
-    /**
-     * @return StreamFactoryInterface
-     */
     public function getStreamFactory(): StreamFactoryInterface
     {
         return $this->streamFactory;
     }
 
-    /**
-     * @param StreamFactoryInterface $streamFactory
-     */
     public function setStreamFactory(StreamFactoryInterface $streamFactory): void
     {
         $this->streamFactory = $streamFactory;

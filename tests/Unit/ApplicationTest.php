@@ -21,32 +21,19 @@ use Eureka\Kernel\Http\Exception\HttpServiceUnavailableException;
 use Eureka\Kernel\Http\Exception\HttpTooManyRequestsException;
 use Eureka\Kernel\Http\Exception\HttpUnauthorizedException;
 use Eureka\Kernel\Http\Kernel;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Class ApplicationTest
- *
- * @author Romain Cottard
- */
 class ApplicationTest extends TestCase
 {
     /**
-     * @return void
-     * @throws \Exception
-     */
-    public function testCanInstantiateApplication(): void
-    {
-        self::assertInstanceOf(ApplicationInterface::class, $this->getApplication());
-    }
-
-    /**
-     * @return void
      * @throws \Exception
      */
     public function testCanRunApplicationWithJsonResponse(): void
     {
         //~ Define current route
-        $_SERVER['REQUEST_URI'] = '/test/json';
+        $_SERVER['REQUEST_URI']    = '/test/json';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
 
         //~ Run Application
         ob_start();
@@ -58,13 +45,13 @@ class ApplicationTest extends TestCase
     }
 
     /**
-     * @return void
      * @throws \Exception
      */
     public function testCanRunApplicationWithHtmlResponse(): void
     {
         //~ Define current route
-        $_SERVER['REQUEST_URI'] = '/test/html';
+        $_SERVER['REQUEST_URI']    = '/test/html';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
 
         //~ Run Application
         ob_start();
@@ -76,13 +63,31 @@ class ApplicationTest extends TestCase
     }
 
     /**
-     * @return void
+     * @throws \Exception
+     */
+    public function testCanRunApplicationWithUrlParameters(): void
+    {
+        //~ Define current route
+        $_SERVER['REQUEST_URI']    = '/test/entities/1/super-title';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        //~ Run Application
+        ob_start();
+        $application = $this->getApplication();
+        $application->send($application->run());
+        $output = ob_get_clean();
+
+        self::assertSame('entity id: 1, title: super-title, someString: value, someBool: true, someInt: 42', $output);
+    }
+
+    /**
      * @throws \Exception
      */
     public function testCanRunApplicationWithRouteNotFoundResponse(): void
     {
         //~ Define current route
-        $_SERVER['REQUEST_URI'] = '/test/error/not-found';
+        $_SERVER['REQUEST_URI']    = '/test/error/not-found';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
 
         //~ Run Application
         ob_start();
@@ -91,17 +96,17 @@ class ApplicationTest extends TestCase
         $output = ob_get_clean();
 
         $expected = "<pre>exception[Eureka\Kernel\Http\Exception\HttpNotFoundException]: \nNo routes found for \"/test/error/not-found\".\n\n</pre>";
-        self::assertEquals($expected, $output);
+        self::assertSame($expected, $output);
     }
 
     /**
-     * @return void
      * @throws \Exception
      */
     public function testCanRunApplicationWhichGenerateTooManyRequestsWhenQuotaIsReach(): void
     {
         //~ Define current route
-        $_SERVER['REQUEST_URI'] = '/test/json/limited';
+        $_SERVER['REQUEST_URI']    = '/test/json/limited';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
 
         //~ Run Application
         ob_start();
@@ -116,11 +121,10 @@ class ApplicationTest extends TestCase
         $output = ob_get_clean();
 
         $expected = "<pre>exception[" . HttpTooManyRequestsException::class . "]: \nToo Many Requests\n\n</pre>";
-        self::assertEquals($expected, $output);
+        self::assertSame($expected, $output);
     }
 
     /**
-     * @return void
      * @throws \Exception
      */
     public function testCanRunApplicationWhichGenerateAppropriateErrorResponseForNotAllowedMethod(): void
@@ -136,23 +140,40 @@ class ApplicationTest extends TestCase
         $output = ob_get_clean();
 
         $expected = "<pre>exception[Eureka\Kernel\Http\Exception\HttpMethodNotAllowedException]: \nAllowed method(s): GET\n\n</pre>";
-        self::assertEquals($expected, $output);
+        self::assertSame($expected, $output);
     }
 
     /**
-     * @param string $uri
-     * @param string $exceptionClass
-     * @return void
      * @throws \Exception
-     *
-     * @dataProvider uriExceptionDataProvider
      */
+    public function testCanRunApplicationAndGetErrorResponseWhenNonCaughtErrorIsThrown(): void
+    {
+        //~ Define current route
+        $_SERVER['REQUEST_URI']    = '/test/error/html/internal-server-error';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $application = new Application(new Kernel((string) realpath(__DIR__ . '/../..'), 'test', true));
+
+        //~ Run Application
+        ob_start();
+        $application->send($application->run());
+        $output = ob_get_clean();
+
+        $expected = "<pre>exception[Eureka\Kernel\Http\Exception\HttpMethodNotAllowedException]: \nAllowed method(s): GET\n\n</pre>";
+        self::assertSame($expected, $output);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    #[DataProvider('uriExceptionDataProvider')]
     public function testCanRunApplicationWhichGenerateAppropriateErrorResponseForGivenError(string $uri, string $exceptionClass): void
     {
         //~ Define current route
-        $_SERVER['REQUEST_URI'] = $uri;
-        $_SERVER['SERVER_NAME'] = 'any';
-        $_SERVER['HTTP_ACCEPT'] = 'application/json';
+        $_SERVER['REQUEST_URI']    = $uri;
+        $_SERVER['SERVER_NAME']    = 'any';
+        $_SERVER['HTTP_ACCEPT']    = 'application/json';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
 
         //~ Run Application
         ob_start();
@@ -160,12 +181,11 @@ class ApplicationTest extends TestCase
         $application->send($application->run());
         $output = ob_get_clean();
 
-        $expected = "<pre>exception[${exceptionClass}]: \nthrow an error (html)\n\n</pre>";
-        self::assertEquals($expected, $output);
+        $expected = "<pre>exception[{$exceptionClass}]: \nthrow an error (html)\n\n</pre>";
+        self::assertSame($expected, $output);
     }
 
     /**
-     * @return void
      * @throws \Exception
      */
     public function testCanRunApplicationWhichGenerateAppropriateErrorResponseForNotExistingActionMethod(): void
@@ -176,7 +196,8 @@ class ApplicationTest extends TestCase
         $_SERVER['SERVER_PORT']  = 443;
         $_SERVER['QUERY_STRING'] = 'foo=bar';
 
-        $_SERVER['REQUEST_URI'] = '/test/error/action-not-exists';
+        $_SERVER['REQUEST_URI']    = '/test/error/action-not-exists';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
 
         //~ Run Application
         ob_start();
@@ -185,11 +206,10 @@ class ApplicationTest extends TestCase
         $output = ob_get_clean();
 
         $expected = "<pre>exception[DomainException]: \nAction controller does not exists! (Eureka\Kernel\Http\Tests\Unit\Mock\TestController::testErrorHtmlActionNotExists\n\n</pre>";
-        self::assertEquals($expected, $output);
+        self::assertSame($expected, $output);
     }
 
     /**
-     * @return ApplicationInterface
      * @throws \Exception
      */
     private function getApplication(): ApplicationInterface
@@ -233,7 +253,7 @@ class ApplicationTest extends TestCase
             ],
             'TypeError' => [
                 '/test/error/html/type-error',
-                HttpInternalServerErrorException::class,
+                \TypeError::class,
             ],
         ];
     }

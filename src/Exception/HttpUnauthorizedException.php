@@ -11,9 +11,4 @@ declare(strict_types=1);
 
 namespace Eureka\Kernel\Http\Exception;
 
-/**
- * Class HttpUnauthorizedException
- *
- * @author Romain Cottard
- */
 class HttpUnauthorizedException extends \RuntimeException {}

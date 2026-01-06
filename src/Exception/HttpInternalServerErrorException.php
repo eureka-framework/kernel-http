@@ -11,9 +11,4 @@ declare(strict_types=1);
 
 namespace Eureka\Kernel\Http\Exception;
 
-/**
- * Class HttpInternalServerErrorException
- *
- * @author Romain Cottard
- */
 class HttpInternalServerErrorException extends \RuntimeException {}

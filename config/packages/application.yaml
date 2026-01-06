@@ -1,0 +1,31 @@
+services:
+  _defaults:
+    autowire: true
+    public:   true # Important, because Controller middleware use container to get appropriate controller and use it
+
+  #~ Application controllers
+  Eureka\Kernel\Http\Controller\:
+    resource: '../../src/Controller/*'
+    calls:
+      - setLogger:               [ '@logger' ]
+      - setRouter:               [ '@router' ]
+      - setResponseFactory:      [ '@response_factory' ]
+      - setRequestFactory:       [ '@request_factory' ]
+      - setServerRequestFactory: [ '@server_request_factory' ]
+      - setStreamFactory:        [ '@stream_factory' ]
+      - setUriFactory:           [ '@uri_factory' ]
+
+  #~ Test Application controllers
+  Eureka\Kernel\Http\Tests\Unit\Mock\TestController:
+    calls:
+      - setLogger:               [ '@logger' ]
+      - setRouter:               [ '@router' ]
+      - setResponseFactory:      [ '@response_factory' ]
+      - setRequestFactory:       [ '@request_factory' ]
+      - setServerRequestFactory: [ '@server_request_factory' ]
+      - setStreamFactory:        [ '@stream_factory' ]
+      - setUriFactory:           [ '@uri_factory' ]
+
+  #~ Auto discovery services
+  Eureka\Kernel\Http\Service\:
+    resource: '../../src/Service/*'

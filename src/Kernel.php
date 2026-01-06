@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace Eureka\Kernel\Http;
 
+use Eureka\Kernel\Http\Exception\KernelException;
 use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Config\Loader\DelegatingLoader;
@@ -24,7 +25,6 @@ use Symfony\Component\DependencyInjection\Loader\DirectoryLoader;
 use Symfony\Component\DependencyInjection\Loader\GlobFileLoader;
 use Symfony\Component\DependencyInjection\Loader\IniFileLoader;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
-use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 /**
@@ -34,7 +34,7 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
  */
 class Kernel
 {
-    private const CONFIG_EXTENSIONS = '.{php,xml,yaml,yml}';
+    private const string CONFIG_EXTENSIONS = '.{php,yaml,yml}';
 
     private ContainerInterface $container;
     private ContainerBuilder $containerBuilder;
@@ -106,8 +106,8 @@ class Kernel
      */
     protected function initErrorReporting(int $reporting, string $display): self
     {
-        error_reporting($reporting);
-        ini_set('display_errors', $display);
+        \error_reporting($reporting);
+        \ini_set('display_errors', $display);
 
         return $this;
     }
@@ -121,14 +121,14 @@ class Kernel
     {
         //~ Override reporting value from config
         $reporting  = $this->container->getParameter('kernel.error.reporting');
-        $errorLevel = (int) (!is_scalar($reporting) ? error_reporting(0) : $reporting);
+        $errorLevel = (int) (!\is_scalar($reporting) ? \error_reporting(0) : $reporting);
 
         //~ Override display value from config
         $display      = $this->container->getParameter('kernel.error.display');
-        $errorDisplay = (string) (!is_scalar($display) ? ini_get('display_errors') : $display);
+        $errorDisplay = (string) (!\is_scalar($display) ? \ini_get('display_errors') : $display);
 
-        error_reporting($errorLevel);
-        ini_set('display_errors', $errorDisplay);
+        \error_reporting($errorLevel);
+        \ini_set('display_errors', $errorDisplay);
 
         return $this;
     }
@@ -144,10 +144,12 @@ class Kernel
 
         //~ Load kernel config files
         $loader->load($this->getConfigDir() . '/{kernel}' . self::CONFIG_EXTENSIONS, 'glob');
-        $loader->load($this->getConfigDir() . '/{kernel}_' . $this->environment . self::CONFIG_EXTENSIONS, 'glob'); // @deprecated
 
         $this->containerBuilder->setParameter('kernel.environment', $this->environment);
         $this->containerBuilder->setParameter('kernel.directory.root', $this->rootDirectory);
+
+        //~ Load services config files
+        $loader->load($this->getConfigDir() . '/{services}' . self::CONFIG_EXTENSIONS, 'glob');
 
         //~ Load packages config files
         $loader->load($this->getConfigDir() . '/{packages}/*' . self::CONFIG_EXTENSIONS, 'glob');
@@ -156,10 +158,6 @@ class Kernel
         //~ Load specific env config files
         $loader->load($this->getConfigDir() . '/{' . $this->environment . '}/*' . self::CONFIG_EXTENSIONS, 'glob');
         $loader->load($this->getConfigDir() . '/{' . $this->environment . '}/**/*' . self::CONFIG_EXTENSIONS, 'glob');
-
-        //~ Load services config files
-        $loader->load($this->getConfigDir() . '/{services}' . self::CONFIG_EXTENSIONS, 'glob');
-        $loader->load($this->getConfigDir() . '/{services}_' . $this->environment . self::CONFIG_EXTENSIONS, 'glob'); // @deprecated
 
         //~ Load secrets config files
         $loader->load($this->getConfigDir() . '/{secrets}/*' . self::CONFIG_EXTENSIONS, 'glob');
@@ -184,7 +182,7 @@ class Kernel
         $compilerPasses = (array) $this->containerBuilder->getParameter('kernel.compiler_pass');
         /** @var class-string<CompilerPassInterface> $compilerPass */
         foreach ($compilerPasses as $compilerPass) {
-            if (!class_exists($compilerPass)) {
+            if (!\class_exists($compilerPass)) {
                 continue;
             }
             $this->containerBuilder->addCompilerPass(new $compilerPass()); // @codeCoverageIgnore
@@ -223,14 +221,13 @@ class Kernel
         $locator  = new FileLocator();
         $resolver = new LoaderResolver(
             [
-                new XmlFileLoader($container, $locator),
                 new YamlFileLoader($container, $locator),
                 new IniFileLoader($container, $locator),
                 new PhpFileLoader($container, $locator),
                 new GlobFileLoader($container, $locator),
                 new DirectoryLoader($container, $locator),
                 new ClosureLoader($container),
-            ]
+            ],
         );
 
         return new DelegatingLoader($resolver);
@@ -243,7 +240,7 @@ class Kernel
      */
     protected function getContainerClass(): string
     {
-        return $this->name . ucfirst($this->environment) . ($this->debug ? 'Debug' : '') . 'ProjectContainer';
+        return $this->name . \ucfirst($this->environment) . ($this->debug ? 'Debug' : '') . 'ProjectContainer';
     }
 
     /**
@@ -289,12 +286,14 @@ class Kernel
         ];
 
         foreach ($dirs as $name => $dir) {
-            if (!is_dir($dir)) {
-                if (false === @mkdir($dir, 0777, true) && !is_dir($dir)) {
-                    throw new \RuntimeException(sprintf("Unable to create the %s directory (%s)\n", $name, $dir)); // @codeCoverageIgnore
+            if (!\is_dir($dir)) {
+                // @codeCoverageIgnoreStart
+                if (false === \mkdir($dir, 0777, true) && !\is_dir($dir)) {
+                    throw new KernelException(\sprintf("Unable to create the %s directory (%s)\n", $name, $dir));
                 }
-            } elseif (!is_writable($dir)) {
-                throw new \RuntimeException(sprintf("Unable to write in the %s directory (%s)\n", $name, $dir)); // @codeCoverageIgnore
+                // @codeCoverageIgnoreEnd
+            } elseif (!\is_writable($dir)) {
+                throw new KernelException(\sprintf("Unable to write in the %s directory (%s)\n", $name, $dir)); // @codeCoverageIgnore
             }
         }
 

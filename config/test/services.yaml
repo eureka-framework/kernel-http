@@ -1,0 +1,5 @@
+parameters:
+  #~ Override list of middlewares for in some tests
+  app.middleware:
+    router:     'Eureka\Kernel\Http\Middleware\RouterMiddleware'
+    controller: 'Eureka\Kernel\Http\Middleware\ControllerMiddleware'

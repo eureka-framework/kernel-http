@@ -20,7 +20,7 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 class IpResolver
 {
-    private const IP_INDICES_TO_CHECK = [
+    private const array IP_INDICES_TO_CHECK = [
         'HTTP_CLIENT_IP',           // Shared internet/ISP IP
         'HTTP_X_FORWARDED_FOR',     // IPs passing through proxies
         'HTTP_X_FORWARDED',
@@ -34,24 +34,24 @@ class IpResolver
      * Retrieves the best guess of the client's actual IP address.
      * Takes into account numerous HTTP proxy headers due to variations
      * in how different ISPs handle IP addresses in headers between hops.
-     *
-     * @param ServerRequestInterface $serverRequest
-     * @param bool $excludePrivate
-     * @return string
      */
     public function resolve(
         ServerRequestInterface $serverRequest,
-        bool $excludePrivate = false
+        bool $excludePrivate = false,
     ): string {
+        /** @var array<string, string|int|float> $server */
         $server = $serverRequest->getServerParams();
         foreach (self::IP_INDICES_TO_CHECK as $index) {
             if (!isset($server[$index])) {
                 continue;
             }
-            $ips = $index === 'HTTP_X_FORWARDED_FOR' && isset($server[$index]) ? explode(',', $server[$index]) : [$server[$index]];
+            $ips = $index === 'HTTP_X_FORWARDED_FOR'
+                ? \explode(',', (string) $server[$index])
+                : [(string) $server[$index]]
+            ;
 
             foreach ($ips as $ip) {
-                if (!empty($ip) && $this->validate($ip, $excludePrivate)) {
+                if ($ip !== '' && $this->validate($ip, $excludePrivate)) {
                     return $ip;
                 }
             }
@@ -60,11 +60,6 @@ class IpResolver
         return '';
     }
 
-    /**
-     * @param string $ip
-     * @param bool $excludePrivate
-     * @return bool
-     */
     public function validate(string $ip, bool $excludePrivate = false): bool
     {
         $options = FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6 | FILTER_FLAG_NO_RES_RANGE;
@@ -73,6 +68,6 @@ class IpResolver
             $options |= FILTER_FLAG_NO_PRIV_RANGE;
         }
 
-        return (filter_var($ip, FILTER_VALIDATE_IP, $options) !== false);
+        return \filter_var($ip, FILTER_VALIDATE_IP, $options) !== false;
     }
 }

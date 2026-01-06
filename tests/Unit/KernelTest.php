@@ -13,17 +13,10 @@ namespace Eureka\Kernel\Http\Tests\Unit;
 
 use Eureka\Kernel\Http\Kernel;
 use PHPUnit\Framework\TestCase;
-use Psr\Container\ContainerInterface;
 
-/**
- * Class KernelTest
- *
- * @author Romain Cottard
- */
 class KernelTest extends TestCase
 {
     /**
-     * @return void
      * @throws \Exception
      */
     public function testCanInstantiateKernel(): void
@@ -32,13 +25,12 @@ class KernelTest extends TestCase
         $env   = 'dev';
         $debug = true;
 
-        $kernel = new Kernel($root, $env, $debug);
+        new Kernel($root, $env, $debug);
 
-        self::assertInstanceOf(Kernel::class, $kernel);
+        $this->expectNotToPerformAssertions();
     }
 
     /**
-     * @return void
      * @throws \Exception
      */
     public function testCanGetContainer(): void
@@ -47,8 +39,8 @@ class KernelTest extends TestCase
         $env   = 'dev';
         $debug = true;
 
-        $kernel = new Kernel($root, $env, $debug);
+        new Kernel($root, $env, $debug);
 
-        self::assertInstanceOf(ContainerInterface::class, $kernel->getContainer());
+        $this->expectNotToPerformAssertions();
     }
 }

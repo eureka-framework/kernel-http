@@ -14,21 +14,12 @@ namespace Eureka\Kernel\Http\RateLimiter\LimiterProvider;
 use Eureka\Kernel\Http\RateLimiter\Counter\CounterInterface;
 use Eureka\Kernel\Http\RateLimiter\Limiter\QuotaLimiter;
 
-/**
- * Abstract Class AbstractQuotaLimiterProvider
- *
- * @author Romain Cottard
- */
 abstract class AbstractQuotaLimiterProvider
 {
-    private CounterInterface $counter;
-    private int $quota;
-
     /**
      * Implement your validation rules here (the mandatory keys in the $parameters with their allowed types).
      *
      * @param array<string, string> $parameters
-     * @return void
      * @throws \InvalidArgumentException
      */
     abstract protected function validateParameters(array $parameters): void;
@@ -37,25 +28,16 @@ abstract class AbstractQuotaLimiterProvider
      * Returns the built counter id from the initial parameters.
      *
      * @param array<string, string> $parameters
-     * @return string
      */
     abstract protected function buildCounterId(array $parameters): string;
 
-    /**
-     * AbstractQuotaLimiterProvider constructor.
-     *
-     * @param CounterInterface $counter
-     * @param int $quota
-     */
-    public function __construct(CounterInterface $counter, int $quota)
-    {
-        $this->counter = $counter;
-        $this->quota   = $quota;
-    }
+    public function __construct(
+        private readonly CounterInterface $counter,
+        private readonly int $quota,
+    ) {}
 
     /**
      * @param array<string, string> $parameters
-     * @return QuotaLimiter
      */
     public function getQuotaLimiter(array $parameters): QuotaLimiter
     {
@@ -64,7 +46,7 @@ abstract class AbstractQuotaLimiterProvider
         return new QuotaLimiter(
             $this->counter,
             $this->buildCounterId($parameters),
-            $this->quota
+            $this->quota,
         );
     }
 }

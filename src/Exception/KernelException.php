@@ -11,4 +11,4 @@ declare(strict_types=1);
 
 namespace Eureka\Kernel\Http\Exception;
 
-class HttpConflictException extends \RuntimeException {}
+class KernelException extends \RuntimeException {}

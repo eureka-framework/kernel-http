@@ -16,16 +16,8 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 
-/**
- * Class IpTest
- *
- * @author Romain Cottard
- */
 class IpResolverTest extends TestCase
 {
-    /**
-     * @return void
-     */
     public function testIGetEmptyIpFromUtilsWhenUseLocalhostIp(): void
     {
         $serverRequest = $this->getServerRequest('127.0.0.1');
@@ -33,29 +25,27 @@ class IpResolverTest extends TestCase
         self::assertEmpty((new IpResolver())->resolve($serverRequest));
     }
 
-    /**
-     * @return void
-     */
     public function testIGetMyIpFromUtilsWhenUseMyIp(): void
     {
         $serverRequest = $this->getServerRequest('1.2.3.4');
 
-        self::assertEquals('1.2.3.4', (new IpResolver())->resolve($serverRequest));
+        self::assertSame('1.2.3.4', (new IpResolver())->resolve($serverRequest));
     }
 
-    /**
-     * @return void
-     */
+    public function testIGetMyIpFromUtilsWhenUseMyIpWithXForwardedForIps(): void
+    {
+        $serverRequest = $this->getServerRequest('1.2.3.4', '1.2.3.5,1.2.3.6');
+
+        self::assertSame('1.2.3.5', (new IpResolver())->resolve($serverRequest));
+    }
+
     public function testIGetMyPrivateIpFromUtilsWhenUseMyPrivateIp(): void
     {
         $serverRequest = $this->getServerRequest('172.16.1.2');
 
-        self::assertEquals('172.16.1.2', (new IpResolver())->resolve($serverRequest));
+        self::assertSame('172.16.1.2', (new IpResolver())->resolve($serverRequest));
     }
 
-    /**
-     * @return void
-     */
     public function testIGetEmptyIpFromUtilsWithExcludedPrivateIpWhenUseMyPrivateIp(): void
     {
         $serverRequest = $this->getServerRequest('172.16.1.3');
@@ -63,14 +53,14 @@ class IpResolverTest extends TestCase
         self::assertEmpty((new IpResolver())->resolve($serverRequest, true));
     }
 
-    /**
-     * @param string $ip
-     * @return ServerRequestInterface
-     */
-    private function getServerRequest(string $ip): ServerRequestInterface
+    private function getServerRequest(string $ip, string $xForwardedFor = ''): ServerRequestInterface
     {
         $server = $_SERVER;
         $server['HTTP_X_FORWARDED'] = $ip;
+
+        if ($xForwardedFor !== '') {
+            $server['HTTP_X_FORWARDED_FOR'] = $xForwardedFor;
+        }
 
         $httpFactory   = new Psr17Factory();
         return $httpFactory->createServerRequest('GET', $httpFactory->createUri('/'), $server);

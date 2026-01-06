@@ -18,11 +18,6 @@ use Eureka\Kernel\Http\Traits\ServerRequestAwareTrait;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-/**
- * Controller class
- *
- * @author Romain Cottard
- */
 abstract class Controller implements ControllerInterface
 {
     use HttpFactoryAwareTrait;
@@ -34,7 +29,7 @@ abstract class Controller implements ControllerInterface
      * @var string[] List of official Http Code (excluding WebDAV official codes)
      * @see https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
      */
-    protected const HTTP_CODE_MESSAGES = [
+    protected const array HTTP_CODE_MESSAGES = [
         //~ 2xx Success
         200 => 'Success',
         201 => 'Created',
@@ -99,11 +94,6 @@ abstract class Controller implements ControllerInterface
     private bool $debug = false;
     private string $environment = 'prod';
 
-    /**
-     * @param string $environment
-     * @param bool $isDebug
-     * @return ControllerInterface
-     */
     public function setEnvironment(string $environment, bool $isDebug = false): ControllerInterface
     {
         $this->environment = $environment;
@@ -112,65 +102,36 @@ abstract class Controller implements ControllerInterface
         return $this;
     }
 
-    /**
-     * This method is executed before the main controller action method.
-     *
-     * @param ServerRequestInterface|null $serverRequest
-     * @return void
-     */
     public function preAction(?ServerRequestInterface $serverRequest = null): void
     {
         //~ Automatically add server request to controller in pre-action
-        if (!empty($serverRequest)) {
+        if ($serverRequest !== null) {
             $this->setServerRequest($serverRequest);
         }
     }
 
-    /**
-     * This method is executed after the main controller action method.
-     *
-     * @param ServerRequestInterface|null $serverRequest
-     * @return void
-     */
     public function postAction(?ServerRequestInterface $serverRequest = null): void {}
 
-    /**
-     * @return bool
-     */
     protected function isDebug(): bool
     {
         return $this->debug;
     }
 
-    /**
-     * @return bool
-     */
     protected function isDev(): bool
     {
-        return ($this->environment === 'dev');
+        return $this->environment === 'dev';
     }
 
-    /**
-     * @return bool
-     */
     protected function isProd(): bool
     {
-        return ($this->environment === 'prod');
+        return $this->environment === 'prod';
     }
 
-    /**
-     * @return string
-     */
     protected function getEnvironment(): string
     {
         return $this->environment;
     }
 
-    /**
-     * @param string $content
-     * @param int $code
-     * @return ResponseInterface
-     */
     protected function getResponse(string $content, int $code = 200): ResponseInterface
     {
         $response = $this->getResponseFactory()->createResponse($code);
@@ -179,39 +140,29 @@ abstract class Controller implements ControllerInterface
         return $response;
     }
 
-    /**
-     * @param \stdClass|string|int|float|array<string|int|float|bool> $content
-     * @param int $code
-     * @param bool $jsonEncode
-     * @return ResponseInterface
-     */
-    protected function getResponseJson($content, int $code = 200, bool $jsonEncode = true): ResponseInterface
+    protected function getResponseJson(mixed $content, int $code = 200, bool $jsonEncode = true): ResponseInterface
     {
-        if ($jsonEncode || (!is_string($content) && !is_numeric($content))) {
-            $content = json_encode($content);
+        if ($jsonEncode || (!\is_string($content) && !\is_numeric($content))) {
+            $content = \json_encode($content);
         }
 
         return $this->getResponse((string) $content, $code)->withAddedHeader('Content-Type', 'application/json');
     }
 
     /**
-     * Redirect on specified url.
-     *
-     * @param  string $url
-     * @param  int    $status
-     * @return void
      * @codeCoverageIgnore
      */
-    protected function redirect(string $url, int $status = 301): void
+    protected function redirect(string $url, int $status = 301): never
     {
-        if (!empty($url)) {
+        if ($url !== '') {
             $params = $this->getServerRequest()->getServerParams();
-            $protocolVersion = str_replace('HTTP/', '', (string) ($params['SERVER_PROTOCOL'] ?? '1.1'));
+            $serverProtocol  = !isset($params['SERVER_PROTOCOL']) || !\is_string($params['SERVER_PROTOCOL']) ? '1.1' : $params['SERVER_PROTOCOL'];
+            $protocolVersion = \str_replace('HTTP/', '', $serverProtocol);
 
-            header('HTTP/' . $protocolVersion . ' ' . $status . ' Redirect');
-            header('Status: ' . $status . ' Redirect');
-            header('Location: ' . $url);
-            header('Pragma: no-cache');
+            \header('HTTP/' . $protocolVersion . ' ' . $status . ' Redirect');
+            \header('Status: ' . $status . ' Redirect');
+            \header('Location: ' . $url);
+            \header('Pragma: no-cache');
             exit(0);
         } else {
             throw new \InvalidArgumentException('Url is empty !');
@@ -219,13 +170,10 @@ abstract class Controller implements ControllerInterface
     }
 
     /**
-     * @param string $routeName
      * @param array<string, string|int|bool|float|bool|null> $params
-     * @param int $status
-     * @return void
      * @codeCoverageIgnore
      */
-    protected function redirectToRoute(string $routeName, array $params = [], int $status = 200): void
+    protected function redirectToRoute(string $routeName, array $params = [], int $status = 200): never
     {
         $this->redirect($this->getRouteUri($routeName, $params), $status);
     }

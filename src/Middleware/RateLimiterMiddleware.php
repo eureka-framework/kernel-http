@@ -23,56 +23,38 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 /**
- * Class RateLimiterMiddleware
  * Exception Code Range: 910-919
- *
- * @author Romain Cottard
  */
-class RateLimiterMiddleware implements MiddlewareInterface
+readonly class RateLimiterMiddleware implements MiddlewareInterface
 {
-    protected CacheItemPoolInterface $cache;
-    protected IpResolver $ipResolver;
-
-    /**
-     * RateLimiterMiddleware constructor.
-     *
-     * @param CacheItemPoolInterface $cache
-     * @param IpResolver $ipResolver
-     */
-    public function __construct(CacheItemPoolInterface $cache, IpResolver $ipResolver)
-    {
-        $this->cache      = $cache;
-        $this->ipResolver = $ipResolver;
-    }
+    public function __construct(
+        private CacheItemPoolInterface $cache,
+        private IpResolver $ipResolver,
+    ) {}
 
     /**
      * Process an incoming server request and return a response, optionally delegating
      * response creation to a handler.
      *
-     * @param ServerRequestInterface $request
-     * @param RequestHandlerInterface $handler
-     * @return ResponseInterface
      * @throws HttpTooManyRequestsException
      */
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    public function process(ServerRequestInterface $serverRequest, RequestHandlerInterface $handler): ResponseInterface
     {
         /** @var array<string, string|int|bool|float|bool|null>|null $route */
-        $route = $request->getAttribute('route', null);
+        $route = $serverRequest->getAttribute('route', null);
 
-        if (!empty($route)) {
+        if (\is_array($route) && $route !== []) {
             $this->assertQuotaNotReached(
                 $route,
-                $this->ipResolver->resolve($request)
+                $this->ipResolver->resolve($serverRequest),
             );
         }
 
-        return $handler->handle($request);
+        return $handler->handle($serverRequest);
     }
 
     /**
      * @param array<string, string|int|bool|float|bool|null> $route
-     * @param string $ip
-     * @return void
      * @throws HttpTooManyRequestsException
      */
     private function assertQuotaNotReached(array $route, string $ip): void
@@ -80,7 +62,7 @@ class RateLimiterMiddleware implements MiddlewareInterface
         $quota = (int) ($route['rateLimiterQuota'] ?? 0);
         $ttl   = (int) ($route['rateLimiterTTL'] ?? 0);
 
-        if (empty($ttl) || empty($quota)) {
+        if ($ttl === 0 || $quota === 0) {
             return;
         }
 
@@ -95,7 +77,7 @@ class RateLimiterMiddleware implements MiddlewareInterface
 
         try {
             $routeQuotaLimiterProvider->getQuotaLimiter($parameters)->assertQuotaNotReached();
-        } catch (QuotaExceededException $exception) {
+        } catch (QuotaExceededException) {
             throw new HttpTooManyRequestsException('Too Many Requests', 429);
         }
     }
